@@ -3,6 +3,7 @@
 /* Version   : V01                                                               */
 /* Date      : 8 August 2020                                                     */
 /*********************************************************************************/
+#include"STD_TYPES.h"
 #ifndef RCC_PRIVATE_H
 #define RCC_PRIVATE_H
 
@@ -18,6 +19,7 @@
 #define RCC_APB1ENR    *((u32*)0x4002101C)
 #define RCC_BDCR       *((u32*)0x40021020)
 #define RCC_CSR        *((u32*)0x40021024)
+
 
 
 /* Clock Types */
