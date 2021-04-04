@@ -5,7 +5,7 @@
 
 ![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)
 
-BMS-MobileApp is a part of our Solution ![BMS](https://github.com/yousefabdelbadea/BMS/tree/master) 
+BMS-MobileApp is a part of our Solution ![](https://github.com/yousefabdelbadea/BMS/tree/master) 
 ## Features
     -Connect mobile app to your car baterry using bluetooth
     -Get Alerts, Notification
@@ -19,4 +19,4 @@ BMS-MobileApp is a part of our Solution ![BMS](https://github.com/yousefabdelbad
 
 
 ## demos
-![(https://github.com/yousefabdelbadea/BMS/blob/MobileApp/demos/Screen_Recording_20210401-202950.gif)]
+![demo](https://github.com/yousefabdelbadea/BMS/blob/MobileApp/demos/Screen_Recording_20210401-202950.gif)
