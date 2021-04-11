@@ -1,4 +1,5 @@
 import 'package:bms/helpers/bluetooth_helper.dart';
+import 'package:bms/providers/cells.dart';
 import 'package:bms/screens/advanced_screen.dart';
 import 'package:bms/screens/car_connection_screen.dart';
 import 'package:bms/screens/driver_screen.dart';
@@ -43,8 +44,11 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (ctx) => BTHelper(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (ctx) => BTHelper()),
+        ChangeNotifierProvider(create: (ctx) => Cells()),
+      ],
       child: Scaffold(
         key: _scaffoldKey,
         body: PageView(

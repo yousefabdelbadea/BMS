@@ -1,5 +1,7 @@
+import 'package:bms/providers/cells.dart';
 import 'package:bms/widgets/cell_meters.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class DriverScreen extends StatefulWidget {
   @override
@@ -12,9 +14,9 @@ class _DriverScreenState extends State<DriverScreen> {
     return Scaffold(
       body: Center(
         child: CellMeters(
-          current: 15,
-          volt: 65,
-          temp: 25,
+          current: Provider.of<Cells>(context).getOverallCurrent().toInt(),
+          volt: Provider.of<Cells>(context).getOverallVoltage().toInt(),
+          temp: Provider.of<Cells>(context).getOverallTemp().toInt(),
         ),
       ),
     );
