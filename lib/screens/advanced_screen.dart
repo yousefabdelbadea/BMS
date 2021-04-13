@@ -1,3 +1,4 @@
+import 'package:bms/screens/cell_deatils_screen.dart';
 import 'package:bms/screens/driver_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -27,8 +28,8 @@ class _AdvancedScreenState extends State<AdvancedScreen> {
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => DriverScreen()));
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => CellDetailsScreen(index)));
               },
               child: GridTile(
                 child: Container(

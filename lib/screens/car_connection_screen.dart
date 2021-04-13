@@ -9,8 +9,6 @@ class CarConnection extends StatefulWidget {
 }
 
 class _CarConnectionState extends State<CarConnection> {
-  bool _connected = false;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +20,7 @@ class _CarConnectionState extends State<CarConnection> {
         actions: [
           TextButton.icon(
             onPressed: () async {
-              BTHelper().getDevices();
+              Provider.of<BTHelper>(context, listen: false).getDevices();
               print(Provider.of<BTHelper>(context, listen: false).devices);
             },
             icon: Icon(Icons.replay_outlined),
@@ -68,27 +66,55 @@ class _CarConnectionState extends State<CarConnection> {
                                   itemBuilder: (ctx, i) => ListTile(
                                     title: Text(devices.devices[i].name),
                                     trailing: TextButton(
-                                      child: _connected
+                                      child: devices.devicesStates[i]
                                           ? Text('Connected')
                                           : Text('Connect'),
                                       onPressed: () async {
-                                        bool newValue =
-                                            await BTHelper().connect(0);
-                                        newValue == false
-                                            ? ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                      'Error in connecection !'),
-                                                ),
-                                              )
-                                            : ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                                SnackBar(
-                                                  content:
-                                                      Text('Device Connected!'),
-                                                ),
-                                              );
+                                        if (!devices.devicesStates[i]) {
+                                          try {
+                                            bool newValue =
+                                                await devices.connect(i);
+
+                                            newValue == false
+                                                ? ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                          'Error in connecection !'),
+                                                    ),
+                                                  )
+                                                : ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                          'Device Connected!'),
+                                                    ),
+                                                  );
+                                          } catch (e) {
+                                            showDialog(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                title:
+                                                    Text('Error in connection'),
+                                                content: Text(e.toString()),
+                                              ),
+                                            );
+                                          }
+                                        } else {
+                                          showDialog(
+                                            context: context,
+                                            builder: (ctx) => AlertDialog(
+                                              title: Text('Already Connected'),
+                                              content:
+                                                  Text('Want to disconnect!'),
+                                              actions: [
+                                                TextButton(
+                                                    onPressed: () {},
+                                                    child: Text('lesa ya amir'))
+                                              ],
+                                            ),
+                                          );
+                                        }
                                       },
                                       style: TextButton.styleFrom(
                                         shadowColor:

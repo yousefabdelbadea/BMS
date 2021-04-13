@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:bms/providers/cells.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
@@ -13,9 +14,11 @@ const Voltage = "2B18";
 const SOC = "2A19";
 
 class BTHelper with ChangeNotifier {
+  final Cells _cells;
+  BTHelper(this._cells);
   FlutterBlue flutterBlue = FlutterBlue.instance;
   List<BluetoothDevice> _devices = [];
-  bool isConnected = false;
+  List<bool> _devicesStates = [];
   var _connectedDevice;
   BluetoothDevice targetDevice;
   Future<void> getDevices() async {
@@ -31,12 +34,13 @@ class BTHelper with ChangeNotifier {
       // do something with scan results
       for (ScanResult r in results) {
         if (!_devices.any((element) => element.id == r.device.id)) {
-          _devices.insert(0, r.device);
-          print('${r.device.name} found! rssi: ${r.rssi}');
+          _devices.add(r.device);
+          _devicesStates.add(false);
+          /*print('${r.device.name} found! rssi: ${r.rssi}');
           print(r.advertisementData);
           print(r.device.id);
           print(_devices.length);
-          if (r.device.name == 'ESP32') {
+            if (r.device.name == 'ESP32') {
             print('found');
             targetDevice = r.device;
             subscription.cancel();
@@ -54,8 +58,8 @@ class BTHelper with ChangeNotifier {
               print(e);
               print(isConnected);
               print(targetDevice.name);
-            }
-          }
+            } 
+          }*/
         }
       }
       notifyListeners();
@@ -75,16 +79,21 @@ class BTHelper with ChangeNotifier {
     try {
       await _devices[index].connect();
       await discoverServices();
-      if (_devices[index].state == BluetoothDeviceState.connected) {
-        isConnected = true;
-        _connectedDevice = targetDevice;
+      List<BluetoothDevice> _connectedDevices =
+          await flutterBlue.connectedDevices;
+      for (var i = 0; i < _connectedDevices.length; i++) {
+        if (_devices[index] == _connectedDevices[i]) {
+          _devicesStates[index] = true;
+          notifyListeners();
+          return true;
+        }
       }
       notifyListeners();
     } catch (e) {
       print(e);
+      throw e;
     }
-
-    return isConnected;
+    return false;
   }
 
   discoverServices() async {
@@ -97,19 +106,30 @@ class BTHelper with ChangeNotifier {
           double temp, current, volt, sOC;
           if (charac.uuid.toString() == Device_name) {
             charac.value.listen((event) async {
-              // set all data
-              current = double.parse(await readData(service.characteristics
-                  .firstWhere(
-                      (element) => element.uuid.toString() == Current)));
-              volt = double.parse(await readData(service.characteristics
-                  .firstWhere(
-                      (element) => element.uuid.toString() == Voltage)));
-              temp = double.parse(await readData(service.characteristics
-                  .firstWhere(
-                      (element) => element.uuid.toString() == Temperature)));
-              sOC = double.parse(await readData(service.characteristics
-                  .firstWhere((element) => element.uuid.toString() == SOC)));
-              writeData('00', charac);
+              if (await readData(charac) != '00') {
+                // set all data
+                current = double.parse(await readData(service.characteristics
+                    .firstWhere(
+                        (element) => element.uuid.toString() == Current)));
+                volt = double.parse(await readData(service.characteristics
+                    .firstWhere(
+                        (element) => element.uuid.toString() == Voltage)));
+                temp = double.parse(await readData(service.characteristics
+                    .firstWhere(
+                        (element) => element.uuid.toString() == Temperature)));
+                sOC = double.parse(await readData(service.characteristics
+                    .firstWhere((element) => element.uuid.toString() == SOC)));
+                _cells.setCellValue(
+                  Cell(
+                    id: double.parse(await readData(charac)),
+                    temp: temp,
+                    volt: volt,
+                    current: current,
+                    sOC: sOC,
+                  ),
+                );
+                writeData('00', charac);
+              }
             });
           }
         });
@@ -133,5 +153,9 @@ class BTHelper with ChangeNotifier {
 
   List<BluetoothDevice> get devices {
     return [..._devices];
+  }
+
+  List<bool> get devicesStates {
+    return [..._devicesStates];
   }
 }
