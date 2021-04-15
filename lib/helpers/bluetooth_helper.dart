@@ -5,13 +5,13 @@ import 'package:bms/providers/cells.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
-const Current_data_service = '180f';
-const Alarming_service = "1802";
-const Device_name = "2A00";
-const Temperature = "2A6E";
-const Current = "2AEE";
-const Voltage = "2B18";
-const SOC = "2A19";
+const String Current_data_service = "0000180f-0000-1000-8000-00805f9b34fb";
+const String Alarming_service = "00001802-0000-1000-8000-00805f9b34fb";
+const Device_name = "00002a00-0000-1000-8000-00805f9b34fb";
+const Temperature = "00002a6e-0000-1000-8000-00805f9b34fb";
+const Current = "00002ae0-0000-1000-8000-00805f9b34fb";
+const Voltage = "00002ae1-0000-1000-8000-00805f9b34fb";
+const SOC = "00002a19-0000-1000-8000-00805f9b34fb";
 
 class BTHelper with ChangeNotifier {
   final Cells _cells;
@@ -19,8 +19,10 @@ class BTHelper with ChangeNotifier {
   FlutterBlue flutterBlue = FlutterBlue.instance;
   List<BluetoothDevice> _devices = [];
   List<bool> _devicesStates = [];
-  var _connectedDevice;
+  BluetoothDevice _connectedDevice;
   BluetoothDevice targetDevice;
+  List<BluetoothService> _sevices = [];
+  int temp, current, volt, sOC;
   Future<void> getDevices() async {
 /*     _devices = await FlutterBluetoothSerial.instance.getBondedDevices();
     notifyListeners(); */
@@ -64,9 +66,14 @@ class BTHelper with ChangeNotifier {
       }
       notifyListeners();
     });
-    flutterBlue.connectedDevices.asStream().listen((event) {
+    flutterBlue.connectedDevices.asStream().listen((event) async {
       for (BluetoothDevice bd in event) {
-        if (!_devices.contains(bd)) _devices.add(bd);
+        if (!_devices.contains(bd)) {
+          _devices.add(bd);
+          _devicesStates.add(true);
+          _connectedDevice = bd;
+          _sevices = await _connectedDevice.discoverServices();
+        }
         print(bd.id);
       }
       notifyListeners();
@@ -78,6 +85,18 @@ class BTHelper with ChangeNotifier {
     flutterBlue.stopScan();
     try {
       await _devices[index].connect();
+      _connectedDevice = _devices[index];
+      _connectedDevice.state.listen((event) {
+        if (event == BluetoothDeviceState.disconnected) {
+          _sevices = [];
+          _connectedDevice = null;
+          _devicesStates = [];
+        }
+      });
+/*       _connectedDevice.isDiscoveringServices.listen((event) {
+        _isDiscovering = event;
+        notifyListeners();
+      }); */
       await discoverServices();
       List<BluetoothDevice> _connectedDevices =
           await flutterBlue.connectedDevices;
@@ -96,45 +115,67 @@ class BTHelper with ChangeNotifier {
     return false;
   }
 
-  discoverServices() async {
+  Future<void> discoverServices() async {
     if (_connectedDevice == null) return;
+    print(_connectedDevice.name);
+    _sevices = await _connectedDevice.discoverServices();
+    notifyListeners();
+    await getData();
+  }
 
-    List<BluetoothService> services = await _connectedDevice.discoverServices();
-    services.forEach((service) {
+  getData() async {
+    _sevices.forEach((service) {
       if (service.uuid.toString() == Current_data_service) {
-        service.characteristics.forEach((charac) {
-          double temp, current, volt, sOC;
+        service.characteristics.forEach((charac) async {
+          if (charac.uuid.toString() == Current) {
+            Future.delayed(Duration(milliseconds: 200), () async {
+              List<int> data = await charac.read();
+              current = data[0];
+              print(current);
+              print('current');
+            });
+          }
+          if (charac.uuid.toString() == Voltage) {
+            Future.delayed(Duration(milliseconds: 400), () async {
+              List<int> data = await charac.read();
+              volt = data[0];
+              print(volt);
+              print('volt');
+            });
+          }
+          if (charac.uuid.toString() == SOC) {
+            Future.delayed(Duration(milliseconds: 600), () async {
+              List<int> data = await charac.read();
+              sOC = data[0];
+              print(sOC);
+              print('Soc');
+            });
+          }
+          if (charac.uuid.toString() == Temperature) {
+            Future.delayed(Duration(milliseconds: 800), () async {
+              List<int> data = await charac.read();
+              temp = data[0];
+              print(temp);
+              print('temp');
+            });
+          }
           if (charac.uuid.toString() == Device_name) {
-            charac.value.listen((event) async {
-              if (await readData(charac) != '00') {
-                // set all data
-                current = double.parse(await readData(service.characteristics
-                    .firstWhere(
-                        (element) => element.uuid.toString() == Current)));
-                volt = double.parse(await readData(service.characteristics
-                    .firstWhere(
-                        (element) => element.uuid.toString() == Voltage)));
-                temp = double.parse(await readData(service.characteristics
-                    .firstWhere(
-                        (element) => element.uuid.toString() == Temperature)));
-                sOC = double.parse(await readData(service.characteristics
-                    .firstWhere((element) => element.uuid.toString() == SOC)));
-                _cells.setCellValue(
-                  Cell(
-                    id: double.parse(await readData(charac)),
-                    temp: temp,
-                    volt: volt,
-                    current: current,
-                    sOC: sOC,
-                  ),
-                );
-                writeData('00', charac);
-              }
+            Future.delayed(Duration(milliseconds: 1000), () async {
+              List<int> data = await charac.read();
+              _cells.setCellValue(Cell(
+                id: data[0],
+                temp: temp,
+                current: current,
+                volt: volt,
+                sOC: sOC,
+              ));
+              await charac.write([0x00]);
+              print(data.toString());
+              print('here');
             });
           }
         });
       }
-      print(service.uuid.toString());
     });
   }
 
@@ -157,5 +198,9 @@ class BTHelper with ChangeNotifier {
 
   List<bool> get devicesStates {
     return [..._devicesStates];
+  }
+
+  List<BluetoothService> get sevices {
+    return [..._sevices];
   }
 }

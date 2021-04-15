@@ -3,12 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
 class Cell {
-  final double temp, current, volt, sOC, id;
+  final int temp, current, volt, sOC, id;
   Cell({this.id, this.current, this.sOC, this.temp, this.volt});
 }
 
 class CellDataHistory {
-  final double temp, current, volt;
+  final int temp, current, volt;
   final String dateTime;
   final int index;
   CellDataHistory(
@@ -28,7 +28,8 @@ class Cells with ChangeNotifier {
   void setCellValue(Cell cell) {
     _cells[cell.id.toInt() - 1] = cell;
     notifyListeners();
-    DBHelper.insert('cellsData', {
+    DBHelper.insert('cells_data', {
+      'id': cell.id,
       'temp': cell.temp,
       'volt': cell.volt,
       'current': cell.current,
@@ -44,14 +45,13 @@ class Cells with ChangeNotifier {
     _cellHistoryData = [];
     var data = await DBHelper.getData('cells_data');
     data.forEach((element) {
-      print(element);
       _cellHistoryData.add(
         CellDataHistory(
-          temp: element['temp'],
           current: element['current'],
           volt: element['volt'],
           dateTime: element['time'],
           index: element['id'],
+          temp: element['temp'],
         ),
       );
     });
@@ -64,24 +64,24 @@ class Cells with ChangeNotifier {
         .toList();
   }
 
-  double getOverallTemp() {
-    double temp = 0;
+  int getOverallTemp() {
+    int temp = 0;
     for (Cell cell in _cells) {
       temp += cell.temp;
     }
     return temp;
   }
 
-  double getOverallCurrent() {
-    double current = 0;
+  int getOverallCurrent() {
+    int current = 0;
     for (Cell cell in _cells) {
       current += cell.current;
     }
     return current;
   }
 
-  double getOverallVoltage() {
-    double volt = 0;
+  int getOverallVoltage() {
+    int volt = 0;
     for (Cell cell in _cells) {
       volt += cell.volt;
     }

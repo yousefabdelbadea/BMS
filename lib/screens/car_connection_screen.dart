@@ -1,4 +1,5 @@
 import 'package:bms/helpers/bluetooth_helper.dart';
+//import 'package:bms/screens/discovery_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,12 @@ class CarConnection extends StatefulWidget {
 }
 
 class _CarConnectionState extends State<CarConnection> {
+  @override
+  void didChangeDependencies() async {
+    await Provider.of<BTHelper>(context, listen: false).getDevices();
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,17 +71,19 @@ class _CarConnectionState extends State<CarConnection> {
                             : Consumer<BTHelper>(builder: (ctx, devices, _) {
                                 return ListView.builder(
                                   itemBuilder: (ctx, i) => ListTile(
+                                    onTap: () => devices.discoverServices(),
                                     title: Text(devices.devices[i].name),
                                     trailing: TextButton(
-                                      child: devices.devicesStates[i]
-                                          ? Text('Connected')
-                                          : Text('Connect'),
+                                      child: devices.devicesStates.isEmpty
+                                          ? null
+                                          : devices.devicesStates[i]
+                                              ? Text('Connected')
+                                              : Text('Connect'),
                                       onPressed: () async {
                                         if (!devices.devicesStates[i]) {
                                           try {
                                             bool newValue =
                                                 await devices.connect(i);
-
                                             newValue == false
                                                 ? ScaffoldMessenger.of(context)
                                                     .showSnackBar(

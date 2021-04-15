@@ -1,6 +1,7 @@
+import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/screens/cell_deatils_screen.dart';
-import 'package:bms/screens/driver_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AdvancedScreen extends StatefulWidget {
   final int hieght, width;
@@ -29,7 +30,10 @@ class _AdvancedScreenState extends State<AdvancedScreen> {
             return InkWell(
               onTap: () {
                 Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => CellDetailsScreen(index)));
+                    builder: (context) => ChangeNotifierProvider.value(
+                          value: Provider.of<BTHelper>(context),
+                          child: CellDetailsScreen(index),
+                        )));
               },
               child: GridTile(
                 child: Container(

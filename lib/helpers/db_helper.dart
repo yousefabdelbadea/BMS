@@ -1,4 +1,3 @@
-import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:path/path.dart' as path;
 
@@ -15,7 +14,7 @@ class DBHelper {
               conflictAlgorithm: sql.ConflictAlgorithm.replace);
         }
         await db.execute(
-            'CREATE TABLE cells_data(id INTEGER NOT NULL, temp REAL, volt REAL, current REAL, time TEXT PRIMARY KEY,FOREIGN KEY (id) REFERENCES cells (id))');
+            'CREATE TABLE cells_data(id INTEGER NOT NULL, volt INTEGER, temp INTEGER, current INTEGER, time TEXT PRIMARY KEY,FOREIGN KEY (id) REFERENCES cells (id))');
       },
       version: 1,
     );

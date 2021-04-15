@@ -33,11 +33,11 @@ class _HomeState extends State<Home> {
     super.initState();
   }
 
-  @override
+/*   @override
   void dispose() {
     pageController.dispose();
     super.dispose();
-  }
+  } */
 
   @override
   Widget build(BuildContext context) {

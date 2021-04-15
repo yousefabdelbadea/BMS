@@ -28,6 +28,12 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    Provider.of<Cells>(context).getHistoryData();
+    super.didChangeDependencies();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var providerData = Provider.of<Cells>(context);
     Cell cellData = providerData.getCellCurrentData(widget.cellIndex);
