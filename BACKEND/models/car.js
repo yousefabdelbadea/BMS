@@ -33,6 +33,8 @@ const carSchema = new mongoose.Schema({
     }
 });
 
+//more front end friendly id
+
 carSchema.virtual('id').get(function () {
     return this._id.toHexString();
 });

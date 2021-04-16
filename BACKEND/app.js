@@ -6,15 +6,20 @@ const api = process.env.API_URL;
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const cors = require('cors');
+require('dotenv/config');
+const authJwt = require('./helpers/jwt');
 
 
 //Routes
 const usersRoutes = require('./routes/users');
 const carsRoutes = require('./routes/cars');
+const errorHandler = require("./helpers/error-handler");
 
 //middleware
 app.use(bodyParser.json()); //TP MAKE IT UNDERSTAND JASON SENT FROM FRONT END
 app.use(morgan('tiny')); //console logging all requests, we can also save logs ing files
+app.use(authJwt()); //express-jwt
+app.use(errorHandler);
 app.use(cors()); //enable any backend to use our backend apis
 app.options('*', cors()); //allowing all http request to passed from any origin
 

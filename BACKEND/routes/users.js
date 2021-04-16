@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 
 router.get(`/`, async (req, res) =>{
     const userList = await User.find().select('-passwordHash');
@@ -104,6 +105,10 @@ router.post('/login', async (req,res) => {
 
 
 router.post('/register', async (req,res)=>{
+    let exist = await User.findOne( {email: req.body.email}).select('email')
+    if (exist){
+        return res.status(400).send('the email is already exist')
+    }
     let user = new User({
         name: req.body.name,
         email: req.body.email,
