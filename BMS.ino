@@ -178,7 +178,17 @@ void setup() {
                       BLECharacteristic::PROPERTY_NOTIFY 
                     );   
                                                                     
-
+// Create Client Characteristic Configuration BLE Descriptor for all characterstics
+  pCharacteristic1_s1->addDescriptor(new BLE2902());
+  pCharacteristic2_s1->addDescriptor(new BLE2902());
+  pCharacteristic3_s1->addDescriptor(new BLE2902());
+  pCharacteristic4_s1->addDescriptor(new BLE2902());
+  pCharacteristic5_s1->addDescriptor(new BLE2902());
+  pCharacteristic1_s2->addDescriptor(new BLE2902());
+  pCharacteristic2_s2->addDescriptor(new BLE2902());
+  pCharacteristic3_s2->addDescriptor(new BLE2902());
+  pCharacteristic4_s2->addDescriptor(new BLE2902());
+  pCharacteristic5_s2->addDescriptor(new BLE2902());
  
 
   // Start the current data service
