@@ -17,7 +17,7 @@ class CellDataHistory {
 
 class Cells with ChangeNotifier {
   List<CellDataHistory> _cellHistoryData = [];
-  List<Cell> _cells = [
+  List<Cell> cells = [
     Cell(temp: 0, current: 0, volt: 0, sOC: 0, id: 1),
     Cell(temp: 0, current: 0, volt: 0, sOC: 0, id: 2),
     Cell(temp: 0, current: 0, volt: 0, sOC: 0, id: 3),
@@ -25,20 +25,23 @@ class Cells with ChangeNotifier {
     Cell(temp: 0, current: 0, volt: 0, sOC: 0, id: 5),
     Cell(temp: 0, current: 0, volt: 0, sOC: 0, id: 6),
   ];
-  void setCellValue(Cell cell) {
-    _cells[cell.id.toInt() - 1] = cell;
+  set cellIndex(int index) {}
+  Future<void> setCellValue(Cell cell) async {
+    cells[cell.id - 1] = cell;
     notifyListeners();
-    DBHelper.insert('cells_data', {
+    print("value seted");
+    await DBHelper.insert('cells_data', {
       'id': cell.id,
       'temp': cell.temp,
       'volt': cell.volt,
       'current': cell.current,
       'time': DateFormat("yy/MM/dd - HH:mm").format(DateTime.now()).toString(),
     });
+    notifyListeners();
   }
 
   Cell getCellCurrentData(int index) {
-    return _cells[index];
+    return cells[index];
   }
 
   Future<void> getHistoryData() async {
@@ -51,22 +54,22 @@ class Cells with ChangeNotifier {
           volt: element['volt'],
           dateTime: element['time'],
           index: element['id'],
-          temp: element['temp'],
+          temp: element['temp'] == null ? 0 : element['temp'],
         ),
       );
+      notifyListeners();
     });
-    notifyListeners();
   }
 
   List<CellDataHistory> getCellHistoryData(int cellId) {
     return _cellHistoryData
-        .where((element) => element.index == cellId + 1)
+        .where((element) => element.index == (cellId + 1))
         .toList();
   }
 
   int getOverallTemp() {
     int temp = 0;
-    for (Cell cell in _cells) {
+    for (Cell cell in cells) {
       temp += cell.temp;
     }
     return temp;
@@ -74,7 +77,7 @@ class Cells with ChangeNotifier {
 
   int getOverallCurrent() {
     int current = 0;
-    for (Cell cell in _cells) {
+    for (Cell cell in cells) {
       current += cell.current;
     }
     return current;
@@ -82,7 +85,7 @@ class Cells with ChangeNotifier {
 
   int getOverallVoltage() {
     int volt = 0;
-    for (Cell cell in _cells) {
+    for (Cell cell in cells) {
       volt += cell.volt;
     }
     return volt;

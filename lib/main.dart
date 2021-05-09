@@ -1,3 +1,8 @@
+import 'package:bms/providers/auth.dart';
+import 'package:bms/screens/advanced_screen.dart';
+import 'package:bms/screens/car_connection_screen.dart';
+import 'package:bms/screens/cell_deatils_screen.dart';
+import 'package:bms/screens/driver_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bms/helpers/bluetooth_helper.dart';
@@ -19,10 +24,11 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (ctx) => User()),
         ChangeNotifierProvider(create: (ctx) => Cells()),
         ChangeNotifierProxyProvider<Cells, BTHelper>(
-          create: (ctx) => BTHelper(null),
-          update: (ctx, cells, _) => BTHelper(cells),
+          create: (_) => BTHelper(),
+          update: (_, data, old) => old..cells = data.cells,
         ),
       ],
       child: MaterialApp(
@@ -32,6 +38,12 @@ class _MyAppState extends State<MyApp> {
           accentColor: Colors.blueGrey,
         ),
         home: SplashScreen(),
+        routes: {
+          CarConnection.routeName: (context) => CarConnection(),
+          AdvancedScreen.routeName: (context) => AdvancedScreen(3, 2),
+          DriverScreen.routeName: (context) => DriverScreen(),
+          CellDetailsScreen.routeName: (context) => CellDetailsScreen(),
+        },
       ),
     );
   }

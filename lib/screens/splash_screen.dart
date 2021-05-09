@@ -1,3 +1,4 @@
+import 'package:bms/screens/car_connection_screen.dart';
 import 'package:bms/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
@@ -34,7 +35,7 @@ class SplashScreen extends StatelessWidget {
           ],
         ),
       ),
-      nextScreen: Home(),
+      nextScreen: CarConnection(),
       backgroundColor: Colors.black54,
       duration: 2000,
       splashTransition: SplashTransition.sizeTransition,

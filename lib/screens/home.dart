@@ -1,8 +1,10 @@
+import 'package:bms/providers/auth.dart';
 import 'package:bms/screens/advanced_screen.dart';
 import 'package:bms/screens/car_connection_screen.dart';
 import 'package:bms/screens/driver_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -33,11 +35,11 @@ class _HomeState extends State<Home> {
     super.initState();
   }
 
-/*   @override
+  @override
   void dispose() {
     pageController.dispose();
     super.dispose();
-  } */
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +49,7 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           CarConnection(),
           DriverScreen(),
-          AdvancedScreen(3, 2),
+          Provider.of<User>(context).isAuth ? AdvancedScreen(3, 2) : null,
         ],
         controller: pageController,
         onPageChanged: onPageChanged,

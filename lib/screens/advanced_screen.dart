@@ -1,9 +1,11 @@
 import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/screens/cell_deatils_screen.dart';
+import 'package:bms/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AdvancedScreen extends StatefulWidget {
+  static const String routeName = "/advancedScreen";
   final int hieght, width;
   AdvancedScreen(this.hieght, this.width);
   @override
@@ -16,7 +18,20 @@ class _AdvancedScreenState extends State<AdvancedScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Detailed Cells Stauts'),
+        leading: Builder(builder: (context) {
+          return Padding(
+            padding: EdgeInsets.only(left: 5),
+            child: Hero(
+              child: TextButton(
+                child: Image.asset('assets/images/logo.png'),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+              tag: 'logo',
+            ),
+          );
+        }),
       ),
+      drawer: AppDrawer(false),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
@@ -29,11 +44,8 @@ class _AdvancedScreenState extends State<AdvancedScreen> {
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => ChangeNotifierProvider.value(
-                          value: Provider.of<BTHelper>(context),
-                          child: CellDetailsScreen(index),
-                        )));
+                Navigator.of(context)
+                    .pushNamed(CellDetailsScreen.routeName, arguments: index);
               },
               child: GridTile(
                 child: Container(
