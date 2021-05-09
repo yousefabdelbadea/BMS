@@ -1,13 +1,17 @@
 const mongoose = require('mongoose');
 
 const cellSchema = new mongoose.Schema({
+    cellDetails: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref:'CellDetail'
+    }],
     number: {
         type: Number,
-        required: true,
+        // required: true,
     },
     model: {
         type: String,
-        required: true,
+        // required: true,
     },
     temperature:  {
         type: Number

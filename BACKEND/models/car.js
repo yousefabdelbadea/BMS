@@ -23,10 +23,10 @@ const carSchema = new mongoose.Schema({
     percentage: {
         type: Number
     },
-    cells: {
+    cells:[ {
         type: mongoose.Schema.Types.ObjectId,
         ref:'Cell'
-    },
+    }],
     dateOfInsertion: {
         type: Date,
         default: Date.now,

@@ -1,10 +1,12 @@
 const {Car} = require('../models/car');
 const express = require('express');
 const { Cell } = require('../models/cell');
+const { CellDetail } = require('../models/cellDetail');
 const router = express.Router();
 
 router.get(`/`, async (req, res) =>{
-    const carList = await Car.find().populate('user', 'name').sort({'dateOfInsertion': -1});
+    const carList = await Car.find().populate('user', 'name').populate( {
+        path: 'cells', populate: {path : 'cellDetails'}}).sort({'dateOfRecord': -1});
 
     if(!carList) {
         res.status(500).json({success: false})
@@ -13,9 +15,11 @@ router.get(`/`, async (req, res) =>{
 })
 
 router.get(`/:id`, async (req, res) =>{
-    const car = await Car.findById(req.params.id)
-        .populate('user', 'name')
-        .populate('cells')
+    const car = await Car.findById(req.params.id).populate('user', 'name')
+        .populate({
+            path: 'cells', populate: {
+                path : 'cellDetails'}
+        }).sort({'cellDetails': -1})
 
     if(!car) {
         res.status(500).json({success: false})
@@ -23,34 +27,39 @@ router.get(`/:id`, async (req, res) =>{
     res.send(car);
 })
 
+
 router.post('/', async (req,res)=>{
     const cells = Promise.all(req.body.cells.map(async (cell) =>{
-        let newCell = new cell({
+        const newCellDetails = Promise.all(cell.cellDetails.map(async (cellDetails) =>{
+            let newCellDetail = new CellDetail({
+                temperature: cellDetails.temperature,
+                current: cellDetails.current,
+                voltage:cellDetails.voltage,
+                percentage:cellDetails.percentage
+            })
+            newCellDetail = await newCellDetail.save();
+            return newCellDetail._id
+        }))
+
+        const  newCellDetailsIds = await newCellDetails
+        let newCell = new Cell({
             number: cell.number,
             model: cell.model,
             temperature: cell.temperature,
             current: cell.current,
             voltage: cell.voltage,
             status: cell.status,
-            percentage: cell.percentage
+            percentage: cell.percentage,
+            cellDetails: newCellDetailsIds
         })
-
         newCell = await newCell.save();
 
-        return newCell;
+        return newCell._id;
     }))
-     const cellResolved =  await cells;
-    //
-    // const totalPrices = await Promise.all(orderItemsIdsResolved.map(async (orderItemId)=>{
-    //     const orderItem = await OrderItem.findById(orderItemId).populate('product', 'price');
-    //     const totalPrice = orderItem.product.price * orderItem.quantity;
-    //     return totalPrice
-    // }))
-    //
-    // const totalPrice = totalPrices.reduce((a,b) => a +b , 0);
+     const cellResolvedIds =  await cells;
 
-    let Car = new Car({
-        cells: cellResolved,
+    let car = new Car({
+        cells: cellResolvedIds,
         number:req.body.number,
         model: req.body.model,
         isOnCharging: req.body.isOnCharging,
@@ -67,6 +76,27 @@ router.post('/', async (req,res)=>{
     res.send(car);
 })
 
+router.patch('/:id',async (req, res)=> {
+    let cell = await Cell.findById(req.params.id);
+
+    const newCellDetails = Promise.all(req.body.cellDetails.map(async (cellDetail) =>{
+        let newCellDetail = new CellDetail({
+            temperature: cellDetail.temperature,
+            current: cellDetail.current,
+            voltage:cellDetail.voltage,
+            percentage:cellDetail.percentage
+        })
+        newCellDetail = await newCellDetail.save();
+        return newCellDetail._id
+    }))
+    const  newCellDetailsIds = await newCellDetails
+    cell.cellDetails = cell.cellDetails.concat(newCellDetailsIds);
+    await cell.save();
+    if(!cell)
+        return res.status(400).send('the order cannot be update!')
+
+    res.send(cell);
+})
 
 router.put('/:id',async (req, res)=> {
     const car = await Car.findByIdAndUpdate(
