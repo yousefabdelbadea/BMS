@@ -36,7 +36,7 @@ app.get('/', ((req, res) => {
 mongoose.connect(process.env.CONNECTION_STRING, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    dbName:'BMS-db'
+    dbName:'eshop-db'
 })
     .then(() => {
         console.log('data base connection is ready');

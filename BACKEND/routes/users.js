@@ -126,7 +126,7 @@ router.post('/register', async (req,res)=>{
     if(!user)
         return res.status(400).send('the user cannot be created!')
 
-    res.send(user);
+    res.send(user.email + " has been registered")
 })
 
 

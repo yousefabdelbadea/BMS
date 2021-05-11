@@ -5,8 +5,8 @@ function authJwt() {
     const api = process.env.API_URL;
     return expressJwt({
         secret,
-        algorithms: ['HS256'],
-        isRevoked: isRevoked
+        algorithms: ['HS256']
+        // , isRevoked: isRevoked
     }).unless({
         path: [
             `${api}/users/login`,
