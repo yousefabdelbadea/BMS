@@ -1,5 +1,6 @@
 import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/providers/cells.dart';
+import 'package:bms/providers/notifications.dart';
 import 'package:bms/widgets/cell_meters.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -73,8 +74,16 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
               Divider(),
               Container(
                 height: 500,
-                child: Builder(
-                  builder: (ctx) => ListView.builder(
+                child: Builder(builder: (ctx) {
+                  Provider.of<LocalNotification>(context).showNotification(
+                      channelID: "Warnning",
+                      channelName: "Warnning",
+                      channelDesc: "channelDesc",
+                      notificationTitle: "Volt is high",
+                      notificationBody:
+                          "volt in Cell ${cellData.id} is high its ${cellData.volt}v");
+
+                  return ListView.builder(
                     itemCount:
                         providerData.getCellHistoryData(cellIndex).length,
                     itemBuilder: (ctx, i) => Column(
@@ -113,8 +122,8 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
                         ),
                       ],
                     ),
-                  ),
-                ),
+                  );
+                }),
               ),
             ],
           ),

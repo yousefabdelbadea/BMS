@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/providers/cells.dart';
 import './screens/splash_screen.dart';
+import 'providers/notifications.dart';
 
 void main() {
   runApp(MyApp());
@@ -26,6 +27,7 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (ctx) => User()),
         ChangeNotifierProvider(create: (ctx) => Cells()),
+        ChangeNotifierProvider(create: (_) => LocalNotification()),
         ChangeNotifierProxyProvider<Cells, BTHelper>(
           create: (_) => BTHelper(),
           update: (_, data, old) => old..cells = data.cells,
