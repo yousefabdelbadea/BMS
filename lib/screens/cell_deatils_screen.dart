@@ -1,6 +1,5 @@
 import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/providers/cells.dart';
-import 'package:bms/widgets/app_drawer.dart';
 import 'package:bms/widgets/cell_meters.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,23 +13,6 @@ class CellDetailsScreen extends StatefulWidget {
 
 class _CellDetailsScreenState extends State<CellDetailsScreen> {
   bool _expanded = false;
-  @override
-  /* void initState() {
-    DBHelper.insert('cells_data', {
-      'id': 1,
-      'temp': 25,
-      'volt': 30,
-      'current': 15,
-      'time': DateFormat("yy/MM/dd - HH:mm").format(DateTime.now()).toString()
-    });
-    super.initState();
-  } */
-
-  @override
-  void didChangeDependencies() {
-    Provider.of<Cells>(context).getHistoryData();
-    super.didChangeDependencies();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +27,7 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           await providerData.getHistoryData();
-          await Provider.of<BTHelper>(context, listen: false)
-              .discoverServices();
+          await Provider.of<BTHelper>(context, listen: false).getData();
         },
         child: SingleChildScrollView(
           physics: AlwaysScrollableScrollPhysics(),

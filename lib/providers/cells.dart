@@ -25,7 +25,6 @@ class Cells with ChangeNotifier {
     Cell(temp: 0, current: 0, volt: 0, sOC: 0, id: 5),
     Cell(temp: 0, current: 0, volt: 0, sOC: 0, id: 6),
   ];
-  set cellIndex(int index) {}
   Future<void> setCellValue(Cell cell) async {
     cells[cell.id - 1] = cell;
     notifyListeners();
@@ -54,7 +53,7 @@ class Cells with ChangeNotifier {
           volt: element['volt'],
           dateTime: element['time'],
           index: element['id'],
-          temp: element['temp'] == null ? 0 : element['temp'],
+          temp: element['temp'],
         ),
       );
       notifyListeners();
@@ -62,6 +61,7 @@ class Cells with ChangeNotifier {
   }
 
   List<CellDataHistory> getCellHistoryData(int cellId) {
+    print('bla bla here');
     return _cellHistoryData
         .where((element) => element.index == (cellId + 1))
         .toList();

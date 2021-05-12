@@ -5,7 +5,7 @@ class DBHelper {
   static Future<sql.Database> database() async {
     final dbpath = await sql.getDatabasesPath();
     return await sql.openDatabase(
-      path.join(dbpath, 'places.db'),
+      path.join(dbpath, 'battery.db'),
       onCreate: (db, version) async {
         await db
             .execute('CREATE TABLE cells(id INTEGER PRIMARY KEY, state TEXT)');

@@ -112,32 +112,32 @@ class BTHelper with ChangeNotifier {
             Future.delayed(Duration(milliseconds: 200), () async {
               List<int> data = await charac.read();
               current = data[0];
-              print(current);
-              print('current');
+              //print(current);
+              //print('current');
             });
           }
           if (charac.uuid.toString() == Voltage) {
             Future.delayed(Duration(milliseconds: 400), () async {
               List<int> data = await charac.read();
               volt = data[0];
-              print(volt);
-              print('volt');
+              //print(volt);
+              //print('volt');
             });
           }
           if (charac.uuid.toString() == SOC) {
             Future.delayed(Duration(milliseconds: 600), () async {
               List<int> data = await charac.read();
               sOC = data[0];
-              print(sOC);
-              print('Soc');
+              //print(sOC);
+              //print('Soc');
             });
           }
           if (charac.uuid.toString() == Temperature) {
             Future.delayed(Duration(milliseconds: 800), () async {
               List<int> data = await charac.read();
               temp = data[0];
-              print(temp);
-              print('temp');
+              //print(temp);
+              //print('temp');
             });
           }
           if (charac.uuid.toString() == Device_name) {
@@ -152,8 +152,6 @@ class BTHelper with ChangeNotifier {
               ));
               notifyListeners();
               await charac.write([0x00]);
-              print(data.toString());
-              print('here');
               Cell cell = _cells[data[0] - 1];
               await DBHelper.insert('cells_data', {
                 'id': cell.id,
@@ -164,7 +162,6 @@ class BTHelper with ChangeNotifier {
                     .format(DateTime.now())
                     .toString(),
               });
-              await DBHelper.getData('cells_data');
               notifyListeners();
             });
           }
