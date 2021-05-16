@@ -74,6 +74,7 @@ class MyServerCallbacks: public BLEServerCallbacks {
 
 void IRAM_ATTR onTimer(){                                  // remove this function when connecting to stm
   set_one = !set_one;
+  permission_to_send = 1;
 }
 
 void setup() {
@@ -180,15 +181,15 @@ void setup() {
                                                                     
 // Create Client Characteristic Configuration BLE Descriptor for all characterstics
   pCharacteristic1_s1->addDescriptor(new BLE2902());
-  pCharacteristic2_s1->addDescriptor(new BLE2902());
+  /*pCharacteristic2_s1->addDescriptor(new BLE2902());
   pCharacteristic3_s1->addDescriptor(new BLE2902());
   pCharacteristic4_s1->addDescriptor(new BLE2902());
-  pCharacteristic5_s1->addDescriptor(new BLE2902());
+  pCharacteristic5_s1->addDescriptor(new BLE2902());*/
   pCharacteristic1_s2->addDescriptor(new BLE2902());
-  pCharacteristic2_s2->addDescriptor(new BLE2902());
+  /*pCharacteristic2_s2->addDescriptor(new BLE2902());
   pCharacteristic3_s2->addDescriptor(new BLE2902());
   pCharacteristic4_s2->addDescriptor(new BLE2902());
-  pCharacteristic5_s2->addDescriptor(new BLE2902());
+  pCharacteristic5_s2->addDescriptor(new BLE2902());*/
  
 
   // Start the current data service
@@ -283,7 +284,7 @@ void loop() {
             
 
 
-        //permission_to_send = 0;                 // remove // when dealing with stm
+        permission_to_send = 0;                 // remove // when dealing with stm
       }
           
           // serivce 2 here if safe_data ==0 with permission_to_send  
