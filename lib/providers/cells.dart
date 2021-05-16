@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bms/helpers/db_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +18,11 @@ class CellDataHistory {
 }
 
 class Cells with ChangeNotifier {
+  String _token = null;
+  set token(String token) {
+    _token = token;
+  }
+
   List<CellDataHistory> _cellHistoryData = [];
   List<Cell> cells = [
     Cell(temp: 0, current: 0, volt: 0, sOC: 0, id: 1),
@@ -72,22 +79,27 @@ class Cells with ChangeNotifier {
     for (Cell cell in cells) {
       temp += cell.temp;
     }
-    return temp;
+    return temp ~/ 6;
   }
 
   int getOverallCurrent() {
     int current = 0;
-    for (Cell cell in cells) {
-      current += cell.current;
-    }
-    return current;
+    current += cells[0].current + cells[2].current + cells[4].current;
+    return current ~/ 3;
   }
 
   int getOverallVoltage() {
-    int volt = 0;
+    int volt1 = 0, volt2 = 0;
+    volt1 += cells[0].volt + cells[1].volt;
+    volt2 += cells[2].volt + cells[3].volt;
+    return max(volt1, volt2);
+  }
+
+  int get getOverallSOC {
+    int soc = 0;
     for (Cell cell in cells) {
-      volt += cell.volt;
+      soc += cell.sOC;
     }
-    return volt;
+    return soc ~/ 6;
   }
 }

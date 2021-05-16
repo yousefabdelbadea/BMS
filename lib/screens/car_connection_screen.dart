@@ -1,8 +1,6 @@
 import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/widgets/app_drawer.dart';
-//import 'package:bms/screens/discovery_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
 import 'package:provider/provider.dart';
 
 class CarConnection extends StatefulWidget {
@@ -46,7 +44,7 @@ class _CarConnectionState extends State<CarConnection> {
           );
         }),
       ),
-      drawer: AppDrawer(false),
+      drawer: AppDrawer(),
       body: RefreshIndicator(
         onRefresh: () =>
             Provider.of<BTHelper>(context, listen: false).getDevices(),

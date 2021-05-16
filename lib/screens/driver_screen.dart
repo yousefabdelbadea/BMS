@@ -39,17 +39,13 @@ class _DriverScreenState extends State<DriverScreen> {
           );
         }),
       ),
-      drawer: AppDrawer(false),
-      body: RefreshIndicator(
-        onRefresh: () =>
-            Provider.of<BTHelper>(context, listen: false).discoverServices(),
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: CellMeters(
-            current: Provider.of<Cells>(context).getOverallCurrent(),
-            volt: Provider.of<Cells>(context).getOverallVoltage(),
-            temp: Provider.of<Cells>(context).getOverallTemp(),
-          ),
+      drawer: AppDrawer(),
+      body: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: CellMeters(
+          current: Provider.of<Cells>(context).getOverallCurrent(),
+          volt: Provider.of<Cells>(context).getOverallVoltage(),
+          temp: Provider.of<Cells>(context).getOverallTemp(),
         ),
       ),
     );

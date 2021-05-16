@@ -1,4 +1,3 @@
-import 'package:bms/providers/auth.dart';
 import 'package:bms/screens/advanced_screen.dart';
 import 'package:bms/screens/car_connection_screen.dart';
 import 'package:bms/screens/cell_deatils_screen.dart';
@@ -8,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/providers/cells.dart';
 import './screens/splash_screen.dart';
-import 'providers/notifications.dart';
+import 'package:bms/providers/auth.dart';
 
 void main() {
   runApp(MyApp());
@@ -25,9 +24,11 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (ctx) => User()),
-        ChangeNotifierProvider(create: (ctx) => Cells()),
-        ChangeNotifierProvider(create: (_) => LocalNotification()),
+        ChangeNotifierProvider(create: (ctx) => Auth()),
+        ChangeNotifierProxyProvider<Auth, Cells>(
+          create: (ctx) => Cells(),
+          update: (_, data, old) => old..token = data.token,
+        ),
         ChangeNotifierProxyProvider<Cells, BTHelper>(
           create: (_) => BTHelper(),
           update: (_, data, old) => old..cells = data.cells,
@@ -46,6 +47,7 @@ class _MyAppState extends State<MyApp> {
           DriverScreen.routeName: (context) => DriverScreen(),
           CellDetailsScreen.routeName: (context) => CellDetailsScreen(),
         },
+        debugShowCheckedModeBanner: false,
       ),
     );
   }

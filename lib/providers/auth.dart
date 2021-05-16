@@ -1,32 +1,48 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
-class User with ChangeNotifier {
-  String _token;
-  DateTime _tokenExpiryTime;
-  String connectedCar;
-  void signIn(String userName, String password) async {
-    // connect to server to recieve the token
-    password = sha512.convert(utf8.encode(password)).toString();
-    var url = Uri.parse('');
-    try {
-      var response = await http.post(url,
-          body: json.encode({"email": userName, "password": password}));
-      if (json.decode(response.body)['token'] != null) {
-        _token = json.decode(response.body)['token'];
-      }
-    } catch (e) {}
+class Auth with ChangeNotifier {
+  String _token, _userId;
+  Timer _timer;
+  bool isAuth() {
+    return token != null;
   }
 
   String get token {
-    return _token;
+    if (_token != null) return _token;
+    return null;
   }
 
-  bool get isAuth {
-    return true;
-    //return _token != null ? true : false;
+  String get userId {
+    return _userId;
   }
+
+  Future<void> signIn(String email, String passowrd) async {
+    var url = Uri.parse(
+        'https://guarded-journey-91897.herokuapp.com/api/v1/users/login');
+    try {
+      final response = await http.post(url,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({'email': email, 'password': passowrd}));
+      final responseData = json.decode(response.body);
+      _token = responseData['token'];
+      notifyListeners();
+      print(_token);
+    } catch (e) {
+      print("error :$e");
+    }
+  }
+
+  Future<void> logOut() async {
+    _userId = null;
+    _token = null;
+    _timer.cancel();
+    _timer = null;
+    notifyListeners();
+  }
+
+  void _autoLogOut() {}
 }

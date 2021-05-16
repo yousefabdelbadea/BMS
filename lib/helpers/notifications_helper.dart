@@ -16,7 +16,7 @@ class ReceivedNotification {
       @required this.payload});
 }
 
-class LocalNotification with ChangeNotifier {
+class LocalNotification {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   AndroidInitializationSettings androidInitializationSettings;
@@ -59,7 +59,6 @@ class LocalNotification with ChangeNotifier {
   Future<void> cancelAllNotifications() async {
     await flutterLocalNotificationsPlugin?.cancelAll();
     await updateNotificationCount();
-    notifyListeners();
   }
 
   Future<void> cancelNotificationById(int notificationId) async {

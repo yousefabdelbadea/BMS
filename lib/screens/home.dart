@@ -49,7 +49,7 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           CarConnection(),
           DriverScreen(),
-          Provider.of<User>(context).isAuth ? AdvancedScreen(3, 2) : null,
+          Provider.of<Auth>(context).isAuth() ? AdvancedScreen(3, 2) : null,
         ],
         controller: pageController,
         onPageChanged: onPageChanged,

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:bms/helpers/db_helper.dart';
 import 'package:bms/providers/cells.dart';
+import 'package:bms/helpers/notifications_helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:intl/intl.dart';
@@ -27,7 +28,7 @@ class BTHelper with ChangeNotifier {
   BluetoothDevice _connectedDevice;
   BluetoothDevice targetDevice;
   List<BluetoothService> _sevices = [];
-  int temp, current, volt, sOC;
+  int temp, current, volt, sOC, id;
   Future<void> getDevices() async {
     flutterBlue.stopScan();
     StreamSubscription subscription;
@@ -69,7 +70,7 @@ class BTHelper with ChangeNotifier {
   Future<bool> connect(int index) async {
     flutterBlue.stopScan();
     try {
-      await _devices[index].connect();
+      await _devices[index].connect(autoConnect: false);
       _connectedDevice = _devices[index];
       _connectedDevice.state.listen((event) {
         if (event == BluetoothDeviceState.disconnected) {
@@ -108,61 +109,97 @@ class BTHelper with ChangeNotifier {
     _sevices.forEach((service) {
       if (service.uuid.toString() == Current_data_service) {
         service.characteristics.forEach((charac) async {
-          if (charac.uuid.toString() == Current) {
-            Future.delayed(Duration(milliseconds: 200), () async {
-              List<int> data = await charac.read();
-              current = data[0];
-              //print(current);
-              //print('current');
-            });
-          }
-          if (charac.uuid.toString() == Voltage) {
-            Future.delayed(Duration(milliseconds: 400), () async {
-              List<int> data = await charac.read();
-              volt = data[0];
-              //print(volt);
-              //print('volt');
-            });
-          }
-          if (charac.uuid.toString() == SOC) {
-            Future.delayed(Duration(milliseconds: 600), () async {
-              List<int> data = await charac.read();
-              sOC = data[0];
-              //print(sOC);
-              //print('Soc');
-            });
-          }
-          if (charac.uuid.toString() == Temperature) {
-            Future.delayed(Duration(milliseconds: 800), () async {
-              List<int> data = await charac.read();
-              temp = data[0];
-              //print(temp);
-              //print('temp');
-            });
-          }
           if (charac.uuid.toString() == Device_name) {
-            Future.delayed(Duration(milliseconds: 1000), () async {
-              List<int> data = await charac.read();
-              _cells[data[0] - 1] = (Cell(
-                id: data[0],
-                temp: temp,
-                current: current,
-                volt: volt,
-                sOC: sOC,
-              ));
-              notifyListeners();
-              await charac.write([0x00]);
-              Cell cell = _cells[data[0] - 1];
-              await DBHelper.insert('cells_data', {
-                'id': cell.id,
-                'temp': cell.temp,
-                'volt': cell.volt,
-                'current': cell.current,
-                'time': DateFormat("yy/MM/dd - HH:mm")
-                    .format(DateTime.now())
-                    .toString(),
-              });
-              notifyListeners();
+            await charac.setNotifyValue(true);
+            charac.value.listen((value) async {
+              if (value != [0x00] && value != []) {
+                print(value);
+                if (value[0] != null) id = value[0];
+                service.characteristics.forEach((charac) async {
+                  if (charac.uuid.toString() == Current) {
+                    Future.delayed(Duration(milliseconds: 200), () async {
+                      List<int> data = await charac.read();
+                      if (data[0] != null) current = data[0];
+                      //print(current);
+                      //print('current');
+                    });
+                  }
+                  if (charac.uuid.toString() == Voltage) {
+                    await Future.delayed(Duration(milliseconds: 400), () async {
+                      List<int> data = await charac.read();
+                      if (data[0] != null) volt = data[0];
+                      //print(volt);
+                      //print('volt');
+                    });
+                  }
+                  if (charac.uuid.toString() == SOC) {
+                    await Future.delayed(Duration(milliseconds: 600), () async {
+                      List<int> data = await charac.read();
+                      if (data[0] != null) sOC = data[0];
+                      //print(sOC);
+                      //print('Soc');
+                    });
+                  }
+                  if (charac.uuid.toString() == Temperature) {
+                    await Future.delayed(Duration(milliseconds: 800), () async {
+                      List<int> data = await charac.read();
+                      if (data[0] != null) temp = data[0];
+                      //print(temp);
+                      //print('temp');
+                    });
+                  }
+                });
+                _cells[id - 1] = (Cell(
+                  id: id,
+                  temp: temp,
+                  current: current,
+                  volt: volt,
+                  sOC: sOC,
+                ));
+                notifyListeners();
+                await charac.write([0x00]);
+                Cell cell = _cells[id - 1];
+                await DBHelper.insert('cells_data', {
+                  'id': cell.id,
+                  'temp': cell.temp,
+                  'volt': cell.volt,
+                  'current': cell.current,
+                  'time': DateFormat("yy/MM/dd - HH:mm")
+                      .format(DateTime.now())
+                      .toString(),
+                });
+                notifyListeners();
+                if (temp > 40) {
+                  LocalNotification().cancelAllNotifications();
+                  LocalNotification().showNotification(
+                      channelID: "Warnning",
+                      channelName: "Warnning",
+                      channelDesc: "channelDesc",
+                      notificationTitle: "Temp is high",
+                      notificationBody:
+                          "Temp in Cell ${cell.id} is high its ${temp}C");
+                }
+                if (current > 40) {
+                  LocalNotification().cancelAllNotifications();
+                  LocalNotification().showNotification(
+                      channelID: "Warnning",
+                      channelName: "Warnning",
+                      channelDesc: "channelDesc",
+                      notificationTitle: "Temp is high",
+                      notificationBody:
+                          "Current in Cell ${cell.id} is high its ${current}C");
+                }
+                if (volt > 40) {
+                  LocalNotification().cancelAllNotifications();
+                  LocalNotification().showNotification(
+                      channelID: "Warnning",
+                      channelName: "Warnning",
+                      channelDesc: "channelDesc",
+                      notificationTitle: "Temp is high",
+                      notificationBody:
+                          "Volt in Cell ${cell.id} is high its ${volt}C");
+                }
+              }
             });
           }
         });

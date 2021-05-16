@@ -1,8 +1,6 @@
-import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/screens/cell_deatils_screen.dart';
 import 'package:bms/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class AdvancedScreen extends StatefulWidget {
   static const String routeName = "/advancedScreen";
@@ -31,7 +29,7 @@ class _AdvancedScreenState extends State<AdvancedScreen> {
           );
         }),
       ),
-      drawer: AppDrawer(false),
+      drawer: AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
