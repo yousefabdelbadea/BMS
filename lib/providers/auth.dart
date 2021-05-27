@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 
 class Auth with ChangeNotifier {
   String _token, _userId;
-  Timer _timer;
   bool isAuth() {
     return token != null;
   }
@@ -39,8 +38,6 @@ class Auth with ChangeNotifier {
   Future<void> logOut() async {
     _userId = null;
     _token = null;
-    _timer.cancel();
-    _timer = null;
     notifyListeners();
   }
 
