@@ -4,6 +4,7 @@ import 'package:bms/screens/advanced_screen.dart';
 import 'package:bms/screens/car_connection_screen.dart';
 import 'package:bms/screens/driver_screen.dart';
 import 'package:bms/screens/login_screen.dart';
+import 'package:bms/screens/remote_connection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bms/providers/auth.dart';
@@ -15,66 +16,78 @@ class AppDrawer extends StatelessWidget {
     String connectedCar = Provider.of<BTHelper>(context).connectedDeviceName;
     String sOC = Provider.of<Cells>(context).getOverallSOC.toString();
     return Drawer(
-      child: Column(
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                Container(
-                  height: 120,
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  alignment: Alignment.centerLeft,
-                  color: Theme.of(context).accentColor,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context)
-                            .pushReplacementNamed(CarConnection.routeName),
-                        child: Text(
-                          connectedCar != null
-                              ? connectedCar
-                              : "No connected Device",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 30,
-                            color: Theme.of(context).primaryColor,
+      child: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  if (!isAuth)
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      alignment: Alignment.centerLeft,
+                      color: Theme.of(context).accentColor,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context)
+                                .pushReplacementNamed(CarConnection.routeName),
+                            child: Text(
+                              connectedCar != null
+                                  ? connectedCar
+                                  : "No connected Device",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 30,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
                           ),
-                        ),
+                          if (sOC != null) Text("$sOC%"),
+                        ],
                       ),
-                      if (sOC != null) Text("$sOC%"),
-                    ],
+                    ),
+                  isAuth
+                      ? TextButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).pushReplacementNamed(
+                                RemoteConnectionScreen.routeName);
+                          },
+                          icon: Icon(Icons.car_repair),
+                          label: Text("Connect Car"),
+                        )
+                      : TextButton.icon(
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pushReplacementNamed(DriverScreen.routeName);
+                          },
+                          icon: Icon(Icons.speed_rounded),
+                          label: Text("Current Measurements"),
+                        ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pushReplacementNamed(AdvancedScreen.routeName);
+                    },
+                    icon: Icon(Icons.history),
+                    label: Text("Car history"),
                   ),
-                ),
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.of(context)
-                        .pushReplacementNamed(DriverScreen.routeName);
-                  },
-                  icon: Icon(Icons.speed_rounded),
-                  label: Text("Current Measurements"),
-                ),
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.of(context)
-                        .pushReplacementNamed(AdvancedScreen.routeName);
-                  },
-                  icon: Icon(Icons.history),
-                  label: Text("Your Car history"),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          TextButton.icon(
-            onPressed: () {
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (ctx) => LoginScreen()));
-            },
-            icon: Icon(isAuth ? Icons.logout : Icons.admin_panel_settings),
-            label: Text(isAuth ? "Log out" : "Log in as crew member"),
-          ),
-        ],
+            TextButton.icon(
+              onPressed: () {
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (ctx) => LoginScreen()));
+              },
+              icon: Icon(isAuth ? Icons.logout : Icons.admin_panel_settings),
+              label: Text(isAuth ? "Log out" : "Log in as crew member"),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/providers/cells.dart';
-import 'package:bms/helpers/notifications_helper.dart';
 import 'package:bms/widgets/cell_meters.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

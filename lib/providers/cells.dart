@@ -5,7 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
 class Cell {
-  final int temp, current, volt, sOC, id;
+  final double current, volt;
+  final int temp, sOC, id;
   Cell({this.id, this.current, this.sOC, this.temp, this.volt});
 }
 
@@ -33,7 +34,7 @@ class Cells with ChangeNotifier {
     Cell(temp: 0, current: 0, volt: 0, sOC: 0, id: 6),
   ];
   Future<void> setCellValue(Cell cell) async {
-    cells[cell.id - 1] = cell;
+    cells[cell.id.toInt() - 1] = cell;
     notifyListeners();
     print("value seted");
     await DBHelper.insert('cells_data', {
@@ -74,32 +75,32 @@ class Cells with ChangeNotifier {
         .toList();
   }
 
-  int getOverallTemp() {
-    int temp = 0;
+  double getOverallTemp() {
+    double temp = 0;
     for (Cell cell in cells) {
       temp += cell.temp;
     }
-    return temp ~/ 6;
+    return temp / 6;
   }
 
-  int getOverallCurrent() {
-    int current = 0;
+  double getOverallCurrent() {
+    double current = 0;
     current += cells[0].current + cells[2].current + cells[4].current;
-    return current ~/ 3;
+    return current / 3;
   }
 
-  int getOverallVoltage() {
-    int volt1 = 0, volt2 = 0;
+  double getOverallVoltage() {
+    double volt1 = 0, volt2 = 0;
     volt1 += cells[0].volt + cells[1].volt;
     volt2 += cells[2].volt + cells[3].volt;
     return max(volt1, volt2);
   }
 
-  int get getOverallSOC {
-    int soc = 0;
+  double get getOverallSOC {
+    double soc = 0;
     for (Cell cell in cells) {
       soc += cell.sOC;
     }
-    return soc ~/ 6;
+    return soc / 6;
   }
 }

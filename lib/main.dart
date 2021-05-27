@@ -2,6 +2,7 @@ import 'package:bms/screens/advanced_screen.dart';
 import 'package:bms/screens/car_connection_screen.dart';
 import 'package:bms/screens/cell_deatils_screen.dart';
 import 'package:bms/screens/driver_screen.dart';
+import 'package:bms/screens/remote_connection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bms/helpers/bluetooth_helper.dart';
@@ -46,6 +47,7 @@ class _MyAppState extends State<MyApp> {
           AdvancedScreen.routeName: (context) => AdvancedScreen(3, 2),
           DriverScreen.routeName: (context) => DriverScreen(),
           CellDetailsScreen.routeName: (context) => CellDetailsScreen(),
+          RemoteConnectionScreen.routeName: (ctx) => RemoteConnectionScreen(),
         },
         debugShowCheckedModeBanner: false,
       ),

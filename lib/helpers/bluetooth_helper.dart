@@ -28,7 +28,8 @@ class BTHelper with ChangeNotifier {
   BluetoothDevice _connectedDevice;
   BluetoothDevice targetDevice;
   List<BluetoothService> _sevices = [];
-  int temp, current, volt, sOC, id;
+  int temp, sOC, id;
+  double current, volt;
   Future<void> getDevices() async {
     flutterBlue.stopScan();
     StreamSubscription subscription;
@@ -119,7 +120,7 @@ class BTHelper with ChangeNotifier {
                   if (charac.uuid.toString() == Current) {
                     Future.delayed(Duration(milliseconds: 200), () async {
                       List<int> data = await charac.read();
-                      if (data[0] != null) current = data[0];
+                      if (data[0] != null) current = data[0].toDouble() / 100;
                       //print(current);
                       //print('current');
                     });
@@ -127,7 +128,7 @@ class BTHelper with ChangeNotifier {
                   if (charac.uuid.toString() == Voltage) {
                     await Future.delayed(Duration(milliseconds: 400), () async {
                       List<int> data = await charac.read();
-                      if (data[0] != null) volt = data[0];
+                      if (data[0] != null) volt = data[0].toDouble() / 10;
                       //print(volt);
                       //print('volt');
                     });
@@ -149,7 +150,7 @@ class BTHelper with ChangeNotifier {
                     });
                   }
                 });
-                _cells[id - 1] = (Cell(
+                _cells[id.toInt() - 1] = (Cell(
                   id: id,
                   temp: temp,
                   current: current,
@@ -158,7 +159,7 @@ class BTHelper with ChangeNotifier {
                 ));
                 notifyListeners();
                 await charac.write([0x00]);
-                Cell cell = _cells[id - 1];
+                Cell cell = _cells[id.toInt() - 1];
                 await DBHelper.insert('cells_data', {
                   'id': cell.id,
                   'temp': cell.temp,
@@ -236,43 +237,6 @@ class BTHelper with ChangeNotifier {
     return _connectedDevice == null ? "No device Yet" : _connectedDevice.name;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* import 'dart:async';
 import 'dart:typed_data';

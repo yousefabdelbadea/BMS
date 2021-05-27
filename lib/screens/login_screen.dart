@@ -1,4 +1,5 @@
 import 'package:bms/providers/auth.dart';
+import 'package:bms/screens/remote_connection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -78,6 +79,9 @@ class _AuthCardState extends State<AuthCard> {
         _authData['email'],
         _authData['password'],
       );
+      if (Provider.of<Auth>(context, listen: false).isAuth())
+        Navigator.of(context)
+            .pushReplacementNamed(RemoteConnectionScreen.routeName);
     }
     /* on HttpException catch (error) {
       var errorMessage = 'Authentication failed';

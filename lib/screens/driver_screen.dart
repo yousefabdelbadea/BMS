@@ -43,9 +43,9 @@ class _DriverScreenState extends State<DriverScreen> {
       body: SingleChildScrollView(
         physics: AlwaysScrollableScrollPhysics(),
         child: CellMeters(
-          current: Provider.of<Cells>(context).getOverallCurrent(),
-          volt: Provider.of<Cells>(context).getOverallVoltage(),
-          temp: Provider.of<Cells>(context).getOverallTemp(),
+          current: Provider.of<Cells>(context).getOverallCurrent().toInt(),
+          volt: Provider.of<Cells>(context).getOverallVoltage().toInt(),
+          temp: Provider.of<Cells>(context).getOverallTemp().toInt(),
         ),
       ),
     );
