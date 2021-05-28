@@ -7,8 +7,43 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/cells.dart';
 
 class ServerAsync {
+  String carId;
   String stagingUrl = "https://guarded-journey-91897.herokuapp.com/api/v1";
-  Future<List<CellDataHistory>> getCar(String carId) async {}
+  Future<List<CellDataHistory>> getCar() async {
+    List<CellDataHistory> cells = [];
+    await getCarId();
+    var url = Uri.parse("$stagingUrl/cars/$carId");
+    try {
+      http.Response response = await http.get(url);
+      List<Map<String, dynamic>> cellsFromServer =
+          json.decode(response.body)['cellDetails'];
+      cellsFromServer.forEach((element) {
+        cells.add(CellDataHistory(
+          current: element['current'],
+          volt: element['voltage'],
+          dateTime: element['dateTime'],
+          temp: element['temperature'],
+          index: element['id'] + 1,
+        ));
+      });
+    } catch (e) {}
+    return cells;
+  }
+
+  Future<void> getCarId() async {
+    var url = Uri.parse("$stagingUrl/cars/");
+    try {
+      http.Response response = await http.post(url,
+          body: json.encode({"number": 1234, "model": "BMW"}));
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        carId = json.decode(response.body)["id"];
+        print(carId);
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString("carID", carId);
+      }
+    } catch (e) {}
+  }
+
   Future<void> setCell(Cell cell) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var connectivityResult = await (Connectivity().checkConnectivity());
@@ -42,9 +77,8 @@ class ServerAsync {
             }));
       }
     } else {
-      var carId;
       if (!prefs.containsKey('carId')) {
-        //post request car and get carid
+        await getCarId();
       } else {
         carId = prefs.getString('carId');
       }
@@ -76,7 +110,7 @@ class ServerAsync {
           print(e);
         }
       } else {
-        url = Uri.parse("$stagingUrl/cars/$carId/${cell.id}");
+        url = Uri.parse("$stagingUrl/cars/$carId/${cell.id}/cellDetails");
         try {
           final response = await http.post(
             url,

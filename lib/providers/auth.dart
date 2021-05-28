@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 class Auth with ChangeNotifier {
   String _token, _userId;
   bool isAuth() {
-    return token != null;
+    return _token != null;
   }
 
   String get token {
@@ -29,7 +29,6 @@ class Auth with ChangeNotifier {
       final responseData = json.decode(response.body);
       _token = responseData['token'];
       notifyListeners();
-      print(_token);
     } catch (e) {
       print("error :$e");
     }
