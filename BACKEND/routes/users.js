@@ -92,10 +92,11 @@ router.post('/login', async (req,res) => {
                 isCrew: user.isCrew
             },
             secret,
-            {expiresIn : '1d'}
+            {expiresIn : '30d'}
         )
-
-        res.status(200).send({user: user.email , token: token})
+        let date = new Date();
+        date.setDate(date.getDate()+30);
+        res.status(200).send({user: user.email , token: token, expirationDate: date})
     } else {
         res.status(400).send('password is wrong!');
     }

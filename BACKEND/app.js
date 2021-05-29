@@ -18,7 +18,7 @@ const errorHandler = require("./helpers/error-handler");
 //middleware
 app.use(bodyParser.json()); //TP MAKE IT UNDERSTAND JASON SENT FROM FRONT END
 app.use(morgan('tiny')); //console logging all requests, we can also save logs ing files
-app.use(authJwt()); //express-jwt
+// app.use(authJwt()); //express-jwt
 app.use(errorHandler);
 app.use(cors()); //enable any backend to use our backend apis
 app.options('*', cors()); //allowing all http request to passed from any origin
