@@ -1,24 +1,3 @@
-/*
-    Video: https://www.youtube.com/watch?v=oCMOYS71NIU
-    Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleNotify.cpp
-    Ported to Arduino ESP32 by Evandro Copercini
-    updated by chegewara
-
-   Create a BLE server that, once we receive a connection, will send periodic notifications.
-   The service advertises itself as: 4fafc201-1fb5-459e-8fcc-c5c9c331914b
-   And has a characteristic of: beb5483e-36e1-4688-b7f5-ea07361b26a8
-
-   The design of creating the BLE server is:
-   1. Create a BLE Server
-   2. Create a BLE Service
-   3. Create a BLE Characteristic on the Service
-   4. Create a BLE Descriptor on the characteristic
-   5. Start the service.
-   6. Start advertising.
-
-   A connect hander associated with the server starts a background task that performs notification
-   every couple of seconds.
-*/
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
@@ -38,13 +17,12 @@ BLECharacteristic* pCharacteristic5_s2 = NULL;
 
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
-bool set_one = true;               // remove this variable when connecting to stm
 uint8_t cell_info[5];
-uint8_t permission_to_send = 1, safe_data = 1, received_resp = 0, i =0;     // initialize permission_to_send to 0 when dealing with stm
+uint8_t permission_to_send = 0, safe_data = 1, received_resp = 0, i =0, starting_index = 0, ending_index = 0;
 uint32_t ready_to_exit = 0;
-hw_timer_t* timer = NULL;      // remove this variable when connecting to stm
-// See the following for generating UUIDs:
-// https://www.uuidgenerator.net/
+String input_string;           // for incoming serial data
+String numerical_string;
+
 
 #define SERVICE1_UUID        "0000180f-0000-1000-8000-00805f9b34fb"       // current data service
 #define SERVICE2_UUID        "00001802-0000-1000-8000-00805f9b34fb"       // alarming service
@@ -58,9 +36,11 @@ hw_timer_t* timer = NULL;      // remove this variable when connecting to stm
 // defining some LEDs
 
 #define ALL_DONE  2
+#define NOT_DONE  5
 #define REMAINING_DATA    4
 #define CONNECTION_LOST 17
 
+#define test_led 21
 
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -72,15 +52,9 @@ class MyServerCallbacks: public BLEServerCallbacks {
     }
 };
 
-void IRAM_ATTR onTimer(){                                  // remove this function when connecting to stm
-  set_one = !set_one;
-  permission_to_send = 1;
-}
-
 void setup() {
 
-  /*timerBegin();
-  timerAlarmWrite();*/
+
   Serial.begin(9600,SERIAL_8N1);
 
   // Create the BLE Device
@@ -179,17 +153,10 @@ void setup() {
                       BLECharacteristic::PROPERTY_NOTIFY 
                     );   
                                                                     
-// Create Client Characteristic Configuration BLE Descriptor for all characterstics
+// Create Client Characteristic Configuration BLE Descriptor for device name characterstic
   pCharacteristic1_s1->addDescriptor(new BLE2902());
-  /*pCharacteristic2_s1->addDescriptor(new BLE2902());
-  pCharacteristic3_s1->addDescriptor(new BLE2902());
-  pCharacteristic4_s1->addDescriptor(new BLE2902());
-  pCharacteristic5_s1->addDescriptor(new BLE2902());*/
   pCharacteristic1_s2->addDescriptor(new BLE2902());
-  /*pCharacteristic2_s2->addDescriptor(new BLE2902());
-  pCharacteristic3_s2->addDescriptor(new BLE2902());
-  pCharacteristic4_s2->addDescriptor(new BLE2902());
-  pCharacteristic5_s2->addDescriptor(new BLE2902());*/
+
  
 
   // Start the current data service
@@ -204,44 +171,65 @@ void setup() {
   pAdvertising->setScanResponse(false);
   pAdvertising->setMinPreferred(0x0);  // set value to 0x00 to not advertise this parameter
   BLEDevice::startAdvertising();
-  //Serial.println("Waiting a client connection to notify...");
+
 
 
   pinMode(ALL_DONE, OUTPUT);
+  pinMode(NOT_DONE, OUTPUT);
   pinMode(REMAINING_DATA, OUTPUT);
   pinMode(CONNECTION_LOST, OUTPUT);
-
-  /*digitalWrite(ALL_DONE, HIGH);
-  digitalWrite(REMAINING_DATA, HIGH);
-  digitalWrite(CONNECTION_LOST, HIGH);*/
-
-  // remove these statements on dealing with stm
-  timer = timerBegin(0, 80, true);  // timer 0, MWDT clock period = 12.5 ns * TIMGn_Tx_WDT_CLK_PRESCALE -> 12.5 ns * 80 -> 1000 ns = 1 us, countUp
-  timerAttachInterrupt(timer, &onTimer, true); // edge (not level) triggered 
-  timerAlarmWrite(timer, 30000000, true); // 30000000 * 1 us = 30 seconds, autoreload true
-  timerAlarmEnable(timer); // enable
+  
+  pinMode(test_led, OUTPUT);                     // just for testing battery
+  digitalWrite(test_led, HIGH);                         
 }
 
 void loop() {
 
-  if (set_one)            // remove this if and following else on dealing with stm
+  if (Serial.available())                     
   {
-    for (i=0;i<5;i++)
-        cell_info[i] = 1;
-  }
-  else
-  {
-    for (i=0;i<5;i++)
-        cell_info[i] = 2;
-  }
+    input_string = Serial.readString();                                                       // read the incoming data as string
 
-    /*if (Serial.available() > 4)                     // remove /* when dealing with stm
-    {      
-      for (i=0;i<5;i++)
-        cell_info[i] = Serial.read() - 48;            // remove -48 when dealing with stm but keep it when dealing with monitor
+    if (input_string[0] == '#' && input_string[input_string.length() - 1] == '$' )            // valid format
+    {
+      digitalWrite(ALL_DONE, HIGH);
+      digitalWrite(NOT_DONE, LOW);
+      starting_index = input_string.indexOf('C');
+      
+      for (i=0;i<5;i++) 
+      {
+        if (i==0)
+          ending_index = input_string.indexOf('T');
+        else if (i == 1)
+          ending_index = input_string.indexOf('A');        
+        else if (i == 2)
+          ending_index = input_string.indexOf('V');   
+        else if (i == 3)
+          ending_index = input_string.indexOf('S');   
+        else if (i == 4)
+          ending_index = input_string.indexOf('$');    
+  
+  
+        numerical_string = input_string.substring(starting_index  + 1, ending_index);
+        cell_info[i] = numerical_string.toInt(); 
+        starting_index = ending_index;
+  
+        if (cell_info[i] > 2 && cell_info[i] < 90)
+          Serial.println("done");
+        else
+          Serial.println("failed");
+      }
+
       permission_to_send = 1;
+    }
 
-    }*/
+    else                                                          // invalid format  
+    {
+      digitalWrite(NOT_DONE, HIGH);
+      digitalWrite(ALL_DONE, LOW);
+    }
+
+
+  }
       
     // notify changed value
     if (deviceConnected) {
@@ -284,7 +272,7 @@ void loop() {
             
 
 
-        permission_to_send = 0;                 // remove // when dealing with stm
+        permission_to_send = 0;                 
       }
           
           // serivce 2 here if safe_data ==0 with permission_to_send  
