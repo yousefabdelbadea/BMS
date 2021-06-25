@@ -9,13 +9,16 @@ import '../providers/cells.dart';
 class ServerAsync {
   String carId;
   String stagingUrl = "https://guarded-journey-91897.herokuapp.com/api/v1";
-  Future<List<CellDataHistory>> getCar() async {
+  Future<String> getCar(String carid) async {
     List<CellDataHistory> cells = [];
-    await getCarId();
+    carId = carid;
     var url = Uri.parse("$stagingUrl/cars/$carId");
     try {
-      http.Response response = await http.get(url);
-      List<Map<String, dynamic>> cellsFromServer =
+      http.Response response = await http.get(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      /* List<Map<String, dynamic>> cellsFromServer =
           json.decode(response.body)['cellDetails'];
       cellsFromServer.forEach((element) {
         cells.add(CellDataHistory(
@@ -25,19 +28,35 @@ class ServerAsync {
           temp: element['temperature'],
           index: element['id'] + 1,
         ));
-      });
+      }); */
+      print(response.body);
+      if (response.statusCode == 200) {
+        return "Data fetched Successfully";
+      } else if (response.statusCode == 400) {
+        return "Invalid Car Id";
+      }
     } catch (e) {}
-    return cells;
   }
 
   Future<void> getCarId() async {
     var url = Uri.parse("$stagingUrl/cars/");
     try {
-      http.Response response = await http.post(url,
-          body: json.encode({"number": 1234, "model": "BMW"}));
+      http.Response response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(
+          {
+            "number": 13,
+            "model": "BMW",
+            "numberOfCells": 6,
+          },
+        ),
+      );
       if (response.statusCode == 200 || response.statusCode == 400) {
-        carId = json.decode(response.body)["id"];
+        print(response.body);
+        carId = json.decode(response.body)["carId"];
         print(carId);
+        print('bla');
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString("carID", carId);
       }
@@ -82,7 +101,7 @@ class ServerAsync {
       } else {
         carId = prefs.getString('carId');
       }
-      var url = Uri.parse("$stagingUrl/cars/$carId");
+      var url = Uri.parse("$stagingUrl/cars/cell/cellDetails/$carId");
       if (prefs.containsKey('waiting_data')) {
         List<Map<String, dynamic>> oldData =
             json.decode(prefs.getString('waiting_data'))["cellDetails"];

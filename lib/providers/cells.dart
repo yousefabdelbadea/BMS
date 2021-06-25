@@ -11,9 +11,9 @@ class Cell {
 }
 
 class CellDataHistory {
-  final int temp, current, volt;
+  final double current, volt;
   final String dateTime;
-  final int index;
+  final int temp, index;
   CellDataHistory(
       {this.current, this.dateTime, this.temp, this.volt, this.index});
 }
@@ -54,7 +54,9 @@ class Cells with ChangeNotifier {
   Future<void> getHistoryData() async {
     _cellHistoryData = [];
     var data = await DBHelper.getData('cells_data');
+    print(data);
     data.forEach((element) {
+      print("1");
       _cellHistoryData.add(
         CellDataHistory(
           current: element['current'],
@@ -99,7 +101,7 @@ class Cells with ChangeNotifier {
   double get getOverallSOC {
     double soc = 0;
     for (Cell cell in cells) {
-      soc += cell.sOC;
+      soc += cell.sOC ?? 0;
     }
     return soc / 6;
   }

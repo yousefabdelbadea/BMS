@@ -14,7 +14,7 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     bool isAuth = Provider.of<Auth>(context).isAuth();
     String connectedCar = Provider.of<BTHelper>(context).connectedDeviceName;
-    String sOC = Provider.of<Cells>(context).getOverallSOC.toString();
+    String sOC = Provider.of<Cells>(context).getOverallSOC.toString() ?? 0;
     return Drawer(
       child: SafeArea(
         child: Column(
@@ -41,7 +41,7 @@ class AppDrawer extends StatelessWidget {
                                   : "No connected Device",
                               style: TextStyle(
                                 fontWeight: FontWeight.w900,
-                                fontSize: 30,
+                                fontSize: 20,
                                 color: Theme.of(context).primaryColor,
                               ),
                             ),
@@ -80,6 +80,10 @@ class AppDrawer extends StatelessWidget {
             ),
             TextButton.icon(
               onPressed: () {
+                if (isAuth) {
+                  Provider.of<Auth>(context).logOut();
+                  Navigator.of(context).pushNamed(CarConnection.routeName);
+                }
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (ctx) => LoginScreen()));
               },

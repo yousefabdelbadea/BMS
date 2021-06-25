@@ -1,4 +1,5 @@
 import 'package:bms/helpers/bluetooth_helper.dart';
+import 'package:bms/providers/auth.dart';
 import 'package:bms/providers/cells.dart';
 import 'package:bms/widgets/cell_meters.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
     Provider.of<BTHelper>(context);
     var providerData = Provider.of<Cells>(context);
     Cell cellData = providerData.getCellCurrentData(cellIndex);
+    bool isAuth = Provider.of<Auth>(context).isAuth();
     return Scaffold(
       appBar: AppBar(
         title: Text('Cell ${cellData.id.toInt()}'),
@@ -33,88 +35,99 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
           physics: AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(
-                  'Current Data',
-                  style: Theme.of(context).textTheme.headline6,
+              if (!isAuth)
+                Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Text(
+                        'Current Data',
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                    ),
+                    Divider(),
+                    ListTile(
+                      leading: CircleAvatar(
+                        child: Text(cellData.sOC.toString()),
+                      ),
+                      title: Text(
+                          '${DateFormat("yy/MM/dd - HH:mm").format(DateTime.now()).toString()}'),
+                      trailing: IconButton(
+                        icon: Icon(
+                            _expanded ? Icons.expand_less : Icons.expand_more),
+                        onPressed: () {
+                          setState(() {
+                            _expanded = !_expanded;
+                          });
+                        },
+                      ),
+                    ),
+                    if (_expanded)
+                      CellMeters(
+                        current: cellData.current.toInt(),
+                        temp: cellData.temp.toInt(),
+                        volt: cellData.volt.toInt(),
+                      ),
+                    Divider(),
+                  ],
                 ),
-              ),
-              Divider(),
-              ListTile(
-                leading: CircleAvatar(
-                  child: Text(cellData.sOC.toString()),
-                ),
-                title: Text(
-                    '${DateFormat("yy/MM/dd - HH:mm").format(DateTime.now()).toString()}'),
-                trailing: IconButton(
-                  icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
-                  onPressed: () {
-                    setState(() {
-                      _expanded = !_expanded;
-                    });
-                  },
-                ),
-              ),
-              if (_expanded)
-                CellMeters(
-                  current: cellData.current.toInt(),
-                  temp: cellData.temp.toInt(),
-                  volt: cellData.volt.toInt(),
-                ),
-              Divider(),
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(
-                  'Historical Data',
-                  style: Theme.of(context).textTheme.headline6,
-                ),
-              ),
-              Divider(),
-              Container(
-                height: 500,
-                child: Builder(builder: (ctx) {
-                  return ListView.builder(
-                    itemCount:
-                        providerData.getCellHistoryData(cellIndex).length,
-                    itemBuilder: (ctx, i) => Column(
-                      children: [
-                        Text(providerData
-                            .getCellHistoryData(cellIndex)[i]
-                            .dateTime),
-                        Row(
+              //if (isAuth)
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text(
+                      'Historical Data',
+                      style: Theme.of(context).textTheme.headline6,
+                    ),
+                  ),
+                  Divider(),
+                  Container(
+                    height: 500,
+                    child: Builder(builder: (ctx) {
+                      return ListView.builder(
+                        itemCount:
+                            providerData.getCellHistoryData(cellIndex).length,
+                        itemBuilder: (ctx, i) => Column(
                           children: [
-                            Text('Tempreture: '),
                             Text(providerData
                                 .getCellHistoryData(cellIndex)[i]
-                                .temp
-                                .toString()),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text('Current: '),
-                            Text(providerData
-                                .getCellHistoryData(cellIndex)[i]
-                                .current
-                                .toString()),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text('Voltage: '),
-                            Text(
-                              providerData
-                                  .getCellHistoryData(cellIndex)[i]
-                                  .volt
-                                  .toString(),
+                                .dateTime),
+                            Row(
+                              children: [
+                                Text('Tempreture: '),
+                                Text(providerData
+                                    .getCellHistoryData(cellIndex)[i]
+                                    .temp
+                                    .toString()),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Text('Current: '),
+                                Text(providerData
+                                    .getCellHistoryData(cellIndex)[i]
+                                    .current
+                                    .toString()),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Text('Voltage: '),
+                                Text(
+                                  providerData
+                                      .getCellHistoryData(cellIndex)[i]
+                                      .volt
+                                      .toString(),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  );
-                }),
+                      );
+                    }),
+                  ),
+                ],
               ),
             ],
           ),

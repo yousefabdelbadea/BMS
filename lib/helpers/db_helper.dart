@@ -14,7 +14,7 @@ class DBHelper {
               conflictAlgorithm: sql.ConflictAlgorithm.replace);
         }
         await db.execute(
-            'CREATE TABLE cells_data(id INTEGER NOT NULL, volt INTEGER, temp INTEGER, current INTEGER, time TEXT PRIMARY KEY,FOREIGN KEY (id) REFERENCES cells (id))');
+            'CREATE TABLE cells_data(id INTEGER NOT NULL, volt REAL, temp INTEGER, current REAL, time TEXT PRIMARY KEY,FOREIGN KEY (id) REFERENCES cells (id))');
       },
       version: 1,
     );

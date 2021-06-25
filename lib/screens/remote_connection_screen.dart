@@ -1,9 +1,10 @@
+import 'package:bms/helpers/server_data_provider.dart';
 import 'package:bms/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 
 class RemoteConnectionScreen extends StatelessWidget {
   static final String routeName = "/remote_connect";
-  String carId;
+  TextEditingController carId = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +35,8 @@ class RemoteConnectionScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
+                      controller: carId,
                       decoration: InputDecoration(labelText: 'Car Id'),
-                      onSaved: (value) {
-                        carId = value;
-                      },
                     ),
                   ),
                   SizedBox(
@@ -45,7 +44,15 @@ class RemoteConnectionScreen extends StatelessWidget {
                   ),
                   ElevatedButton(
                     child: Text('Connect Car'),
-                    onPressed: () {},
+                    onPressed: () async {
+                      print(carId.text);
+                      String messgae = await ServerAsync().getCar(carId.text);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(messgae),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
