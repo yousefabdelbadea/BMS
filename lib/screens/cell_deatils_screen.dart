@@ -64,9 +64,9 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
                     ),
                     if (_expanded)
                       CellMeters(
-                        current: cellData.current.toInt(),
-                        temp: cellData.temp.toInt(),
-                        volt: cellData.volt.toInt(),
+                        current: cellData.current,
+                        temp: cellData.temp.toDouble(),
+                        volt: cellData.volt,
                       ),
                     Divider(),
                   ],
@@ -91,13 +91,21 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
                         itemBuilder: (ctx, i) => Column(
                           children: [
                             Text(providerData
-                                .getCellHistoryData(cellIndex)[i]
+                                .getCellHistoryData(cellIndex)[providerData
+                                        .getCellHistoryData(cellIndex)
+                                        .length -
+                                    i -
+                                    1]
                                 .dateTime),
                             Row(
                               children: [
                                 Text('Tempreture: '),
                                 Text(providerData
-                                    .getCellHistoryData(cellIndex)[i]
+                                    .getCellHistoryData(cellIndex)[providerData
+                                            .getCellHistoryData(cellIndex)
+                                            .length -
+                                        i -
+                                        1]
                                     .temp
                                     .toString()),
                               ],
@@ -106,7 +114,11 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
                               children: [
                                 Text('Current: '),
                                 Text(providerData
-                                    .getCellHistoryData(cellIndex)[i]
+                                    .getCellHistoryData(cellIndex)[providerData
+                                            .getCellHistoryData(cellIndex)
+                                            .length -
+                                        i -
+                                        1]
                                     .current
                                     .toString()),
                               ],
@@ -116,7 +128,12 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
                                 Text('Voltage: '),
                                 Text(
                                   providerData
-                                      .getCellHistoryData(cellIndex)[i]
+                                      .getCellHistoryData(cellIndex)[
+                                          providerData
+                                                  .getCellHistoryData(cellIndex)
+                                                  .length -
+                                              i -
+                                              1]
                                       .volt
                                       .toString(),
                                 ),

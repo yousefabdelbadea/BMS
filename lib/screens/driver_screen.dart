@@ -17,15 +17,6 @@ class _DriverScreenState extends State<DriverScreen> {
     String deviceName = Provider.of<BTHelper>(context).connectedDeviceName;
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          TextButton.icon(
-            onPressed: () async {
-              Provider.of<BTHelper>(context, listen: false).discoverServices();
-            },
-            icon: Icon(Icons.refresh),
-            label: Text("Refresh Data"),
-          )
-        ],
         leading: Builder(builder: (context) {
           return Padding(
             padding: EdgeInsets.only(left: 5),
@@ -43,9 +34,9 @@ class _DriverScreenState extends State<DriverScreen> {
       body: SingleChildScrollView(
         physics: AlwaysScrollableScrollPhysics(),
         child: CellMeters(
-          current: Provider.of<Cells>(context).getOverallCurrent().toInt(),
-          volt: Provider.of<Cells>(context).getOverallVoltage().toInt(),
-          temp: Provider.of<Cells>(context).getOverallTemp().toInt(),
+          current: Provider.of<Cells>(context).getOverallCurrent(),
+          volt: Provider.of<Cells>(context).getOverallVoltage(),
+          temp: Provider.of<Cells>(context).getOverallTemp().toDouble(),
         ),
       ),
     );
