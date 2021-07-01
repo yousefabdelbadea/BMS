@@ -101,7 +101,8 @@ class _CarConnectionState extends State<CarConnection> {
                                             ),
                                           );
                                         }
-                                      } else {
+                                      }
+                                      /* else {
                                         showDialog(
                                           context: context,
                                           builder: (ctx) => AlertDialog(
@@ -111,16 +112,21 @@ class _CarConnectionState extends State<CarConnection> {
                                             actions: [
                                               TextButton(
                                                   onPressed: () async {
-                                                    /* await Provider.of<BTHelper>(
-                                                          context,
-                                                          listen: false)
-                                                      .disConnect(); */
+                                                    await Provider.of<BTHelper>(
+                                                            context,
+                                                            listen: false)
+                                                        .disConnect();
+                                                    Navigator.of(context).pop();
+                                                    Provider.of<BTHelper>(
+                                                            context,
+                                                            listen: false)
+                                                        .getDevices();
                                                   },
                                                   child: Text('Yes'))
                                             ],
                                           ),
                                         );
-                                      }
+                                      } */
                                     },
                                     style: TextButton.styleFrom(
                                       shadowColor:

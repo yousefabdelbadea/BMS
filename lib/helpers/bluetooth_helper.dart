@@ -62,9 +62,12 @@ class BTHelper with ChangeNotifier {
     print(_devices.length);
   }
 
-  void disConnect() {
+  Future<void> disConnect() async {
     if (_connectedDevice == null) return;
-    _connectedDevice.disconnect();
+    await _connectedDevice.disconnect();
+    for (var item in _devicesStates) {
+      item = false;
+    }
     notifyListeners();
   }
 
@@ -73,11 +76,13 @@ class BTHelper with ChangeNotifier {
     try {
       await _devices[index].connect(autoConnect: false);
       _connectedDevice = _devices[index];
-      _connectedDevice.state.listen((event) {
+      _connectedDevice.state.listen((event) async {
         if (event == BluetoothDeviceState.disconnected) {
           _sevices = [];
           _connectedDevice = null;
           _devicesStates = [];
+          _devices = [];
+          notifyListeners();
         }
       });
       await discoverServices();
@@ -90,10 +95,10 @@ class BTHelper with ChangeNotifier {
           return true;
         }
       }
+
       notifyListeners();
     } catch (e) {
       print(e);
-      throw e;
     }
     return false;
   }
@@ -119,11 +124,12 @@ class BTHelper with ChangeNotifier {
                   _isListinig = false;
                 });
                 _isListinig = true;
+                id = value[0];
                 print(value);
-                if (value != []) {
+                if (value != [] && _connectedDevice != null) {
                   service.characteristics.forEach((charac) async {
                     if (charac.uuid.toString() == Current) {
-                      Future.delayed(Duration(milliseconds: 200), () async {
+                      Future.delayed(Duration(milliseconds: 400), () async {
                         List<int> data = await charac.read();
                         if (data != []) current = data[0].toDouble() / 100;
                         //print(current);
@@ -131,28 +137,31 @@ class BTHelper with ChangeNotifier {
                       });
                     }
                     if (charac.uuid.toString() == Voltage) {
-                      await Future.delayed(Duration(milliseconds: 400),
+                      await Future.delayed(Duration(milliseconds: 800),
                           () async {
                         List<int> data = await charac.read();
-                        if (data != []) volt = data[0].toDouble() / 10;
+                        if (data != [] && _connectedDevice != null)
+                          volt = data[0].toDouble() / 10;
                         //print(volt);
                         //print('volt');
                       });
                     }
                     if (charac.uuid.toString() == SOC) {
-                      await Future.delayed(Duration(milliseconds: 600),
+                      await Future.delayed(Duration(milliseconds: 1200),
                           () async {
                         List<int> data = await charac.read();
-                        if (data != []) sOC = data[0];
+                        if (data != [] && _connectedDevice != null)
+                          sOC = data[0];
                         //print(sOC);
                         //print('Soc');
                       });
                     }
                     if (charac.uuid.toString() == Temperature) {
-                      await Future.delayed(Duration(milliseconds: 800),
+                      await Future.delayed(Duration(milliseconds: 1600),
                           () async {
                         List<int> data = await charac.read();
-                        if (data != []) temp = data[0];
+                        if (data != [] && _connectedDevice != null)
+                          temp = data[0];
                         //print(temp);
                         //print('temp');
                       });
