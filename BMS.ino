@@ -17,8 +17,8 @@ BLECharacteristic* pCharacteristic5_s2 = NULL;
 
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
-uint8_t cell_info[5];
-uint8_t permission_to_send = 0, safe_data = 1, received_resp = 0, i =0, starting_index = 0, ending_index = 0;
+uint8_t cell_info[5] = {1,68,245,37,87};
+uint8_t permission_to_send = 0, safe_data = 1, received_resp = 0, i =0, starting_index = 0, ending_index = 0;   
 uint32_t ready_to_exit = 0;
 String input_string;           // for incoming serial data
 String numerical_string;
@@ -185,7 +185,8 @@ void setup() {
 
 void loop() {
 
-  if (Serial.available())                     
+  // remove these comments when mobile app works well with dummy data below
+  /*if (Serial.available())                     
   {
     input_string = Serial.readString();                                                       // read the incoming data as string
 
@@ -229,10 +230,13 @@ void loop() {
     }
 
 
-  }
+  }*/
       
     // notify changed value
     if (deviceConnected) {
+
+
+      permission_to_send = 1;                               // remove this line once dummy data works well with mobile app
 
       if (permission_to_send && safe_data)
       {
