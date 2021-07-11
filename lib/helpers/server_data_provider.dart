@@ -57,7 +57,7 @@ class ServerAsync with ChangeNotifier {
           dateTime: DateFormat("yy/MM/dd - HH:mm")
               .format(DateTime.parse(element['dateOfRecord']))
               .toString(),
-          temp: element['percentage'],
+          temp: element['temperature'],
           index: cellId + 1,
         ));
       });
