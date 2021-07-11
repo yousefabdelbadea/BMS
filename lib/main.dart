@@ -1,3 +1,4 @@
+import 'package:bms/helpers/server_data_provider.dart';
 import 'package:bms/screens/advanced_screen.dart';
 import 'package:bms/screens/car_connection_screen.dart';
 import 'package:bms/screens/cell_deatils_screen.dart';
@@ -25,6 +26,9 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (ctx) => ServerAsync(),
+        ),
         ChangeNotifierProvider(create: (ctx) => Auth()),
         ChangeNotifierProxyProvider<Auth, Cells>(
           create: (ctx) => Cells(),

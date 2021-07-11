@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bms/helpers/db_helper.dart';
+import 'package:bms/helpers/server_data_provider.dart';
 import 'package:bms/providers/cells.dart';
 import 'package:bms/helpers/notifications_helper.dart';
 import 'package:flutter/cupertino.dart';
@@ -206,6 +207,7 @@ class BTHelper with ChangeNotifier {
                         return;
                       }
                       cell = _cells[id.toInt() - 1];
+                      await ServerAsync().setCell(cell);
                     }
                     if (cell.id != null &&
                         cell.current != null &&

@@ -1,6 +1,7 @@
 import 'package:bms/helpers/server_data_provider.dart';
 import 'package:bms/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RemoteConnectionScreen extends StatelessWidget {
   static final String routeName = "/remote_connect";
@@ -46,7 +47,9 @@ class RemoteConnectionScreen extends StatelessWidget {
                     child: Text('Connect Car'),
                     onPressed: () async {
                       print(carId.text);
-                      String messgae = await ServerAsync().getCar(carId.text);
+                      String messgae =
+                          await Provider.of<ServerAsync>(context, listen: false)
+                              .getCar(carId.text);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(messgae),

@@ -71,7 +71,6 @@ class Cells with ChangeNotifier {
   }
 
   List<CellDataHistory> getCellHistoryData(int cellId) {
-    print('bla bla here');
     return _cellHistoryData
         .where((element) => element.index == (cellId + 1))
         .toList();

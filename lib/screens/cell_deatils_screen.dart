@@ -1,6 +1,7 @@
 import 'package:bms/helpers/bluetooth_helper.dart';
 import 'package:bms/providers/auth.dart';
 import 'package:bms/providers/cells.dart';
+import 'package:bms/widgets/cell_history_tile.dart';
 import 'package:bms/widgets/cell_meters.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -88,58 +89,38 @@ class _CellDetailsScreenState extends State<CellDetailsScreen> {
                       return ListView.builder(
                         itemCount:
                             providerData.getCellHistoryData(cellIndex).length,
-                        itemBuilder: (ctx, i) => Column(
-                          children: [
-                            Text(providerData
-                                .getCellHistoryData(cellIndex)[providerData
-                                        .getCellHistoryData(cellIndex)
-                                        .length -
-                                    i -
-                                    1]
-                                .dateTime),
-                            Row(
-                              children: [
-                                Text('Tempreture: '),
-                                Text(providerData
-                                    .getCellHistoryData(cellIndex)[providerData
-                                            .getCellHistoryData(cellIndex)
-                                            .length -
-                                        i -
-                                        1]
-                                    .temp
-                                    .toString()),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Text('Current: '),
-                                Text(providerData
-                                    .getCellHistoryData(cellIndex)[providerData
-                                            .getCellHistoryData(cellIndex)
-                                            .length -
-                                        i -
-                                        1]
-                                    .current
-                                    .toString()),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Text('Voltage: '),
-                                Text(
-                                  providerData
-                                      .getCellHistoryData(cellIndex)[
-                                          providerData
-                                                  .getCellHistoryData(cellIndex)
-                                                  .length -
-                                              i -
-                                              1]
-                                      .volt
-                                      .toString(),
-                                ),
-                              ],
-                            ),
-                          ],
+                        itemBuilder: (ctx, i) => CellHistoryTile(
+                          dateTime: providerData
+                              .getCellHistoryData(cellIndex)[providerData
+                                      .getCellHistoryData(cellIndex)
+                                      .length -
+                                  i -
+                                  1]
+                              .dateTime,
+                          temp: providerData
+                              .getCellHistoryData(cellIndex)[providerData
+                                      .getCellHistoryData(cellIndex)
+                                      .length -
+                                  i -
+                                  1]
+                              .temp
+                              .toString(),
+                          current: providerData
+                              .getCellHistoryData(cellIndex)[providerData
+                                      .getCellHistoryData(cellIndex)
+                                      .length -
+                                  i -
+                                  1]
+                              .current
+                              .toString(),
+                          volt: providerData
+                              .getCellHistoryData(cellIndex)[providerData
+                                      .getCellHistoryData(cellIndex)
+                                      .length -
+                                  i -
+                                  1]
+                              .volt
+                              .toString(),
                         ),
                       );
                     }),

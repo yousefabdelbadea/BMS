@@ -1,16 +1,17 @@
 import 'dart:convert';
 
 import 'package:connectivity/connectivity.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/cells.dart';
 
-class ServerAsync {
+class ServerAsync with ChangeNotifier {
   String carId;
   String stagingUrl = "https://guarded-journey-91897.herokuapp.com/api/v1";
   Future<String> getCar(String carid) async {
-    List<CellDataHistory> cells = [];
     carId = carid;
     var url = Uri.parse("$stagingUrl/cars/$carId");
     try {
@@ -36,6 +37,33 @@ class ServerAsync {
         return "Invalid Car Id";
       }
     } catch (e) {}
+    notifyListeners();
+  }
+
+  Future<void> getCellData(int cellId) async {
+    List<CellDataHistory> cells = [];
+    var url = Uri.parse("$stagingUrl/cars/$carId/$cellId");
+    print(carId);
+    try {
+      http.Response response = await http.get(
+        url,
+        headers: {"Content-Type": "application/json"},
+      );
+      List<dynamic> cellsFromServer = json.decode(response.body)['cellDetails'];
+      cellsFromServer.forEach((element) {
+        cells.add(CellDataHistory(
+          current: element['current'],
+          volt: element['voltage'],
+          dateTime: DateFormat("yy/MM/dd - HH:mm")
+              .format(DateTime.parse(element['dateOfRecord']))
+              .toString(),
+          temp: element['percentage'],
+          index: cellId + 1,
+        ));
+      });
+      print(response.statusCode);
+    } catch (e) {}
+    return cells;
   }
 
   Future<void> getCarId() async {
@@ -58,7 +86,7 @@ class ServerAsync {
         print(carId);
         print('bla');
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString("carID", carId);
+        await prefs.setString("carID", carId);
       }
     } catch (e) {}
   }
@@ -78,9 +106,10 @@ class ServerAsync {
           "percentage": cell.sOC,
           "dateTime": DateTime.now().toIso8601String(),
         });
-        prefs.setString("waiting_data", json.encode({"cellDetails": oldData}));
+        await prefs.setString(
+            "waiting_data", json.encode({"cellDetails": oldData}));
       } else {
-        prefs.setString(
+        await prefs.setString(
             "waiting_data",
             json.encode({
               "cellDetails": [
@@ -113,7 +142,8 @@ class ServerAsync {
           "percentage": cell.sOC,
           "dateTime": DateTime.now().toIso8601String(),
         });
-        prefs.setString("waiting_data", json.encode({"cellDetails": oldData}));
+        await prefs.setString(
+            "waiting_data", json.encode({"cellDetails": oldData}));
         try {
           final response = await http.post(
             url,

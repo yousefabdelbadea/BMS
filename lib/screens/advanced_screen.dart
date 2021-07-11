@@ -1,6 +1,9 @@
+import 'package:bms/providers/auth.dart';
 import 'package:bms/screens/cell_deatils_screen.dart';
+import 'package:bms/screens/remote_cell_details_screen.dart';
 import 'package:bms/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AdvancedScreen extends StatefulWidget {
   static const String routeName = "/advancedScreen";
@@ -42,8 +45,12 @@ class _AdvancedScreenState extends State<AdvancedScreen> {
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () {
-                Navigator.of(context)
-                    .pushNamed(CellDetailsScreen.routeName, arguments: index);
+                Provider.of<Auth>(context, listen: false).isAuth()
+                    ? Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => RemoteCellHistoryScreen(index)))
+                    : Navigator.of(context).pushNamed(
+                        CellDetailsScreen.routeName,
+                        arguments: index);
               },
               child: GridTile(
                 child: Container(
