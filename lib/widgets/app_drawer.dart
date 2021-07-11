@@ -81,11 +81,13 @@ class AppDrawer extends StatelessWidget {
             TextButton.icon(
               onPressed: () {
                 if (isAuth) {
-                  Provider.of<Auth>(context).logOut();
+                  Provider.of<Auth>(context, listen: false).logOut();
                   Navigator.of(context).pushNamed(CarConnection.routeName);
                 }
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (ctx) => LoginScreen()));
+                if (!isAuth) {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (ctx) => LoginScreen()));
+                }
               },
               icon: Icon(isAuth ? Icons.logout : Icons.admin_panel_settings),
               label: Text(isAuth ? "Log out" : "Log in as crew member"),

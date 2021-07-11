@@ -1,5 +1,6 @@
 import 'package:bms/providers/auth.dart';
 import 'package:bms/screens/remote_connection_screen.dart';
+import 'package:bms/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +8,21 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: Builder(builder: (context) {
+          return Padding(
+            padding: EdgeInsets.only(left: 5),
+            child: Hero(
+              child: TextButton(
+                child: Image.asset('assets/images/logo.png'),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+              tag: 'logo',
+            ),
+          );
+        }),
+      ),
+      drawer: AppDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
