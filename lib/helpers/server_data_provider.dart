@@ -137,7 +137,7 @@ class ServerAsync with ChangeNotifier {
         oldData.add({
           "cellId": cell.id,
           "current": cell.current,
-          "temperatue": cell.temp,
+          "temperature": cell.temp,
           "voltage": cell.volt,
           "percentage": cell.sOC,
           "dateTime": DateTime.now().toIso8601String(),
