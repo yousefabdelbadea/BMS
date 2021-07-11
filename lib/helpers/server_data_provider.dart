@@ -57,12 +57,14 @@ class ServerAsync with ChangeNotifier {
           dateTime: DateFormat("yy/MM/dd - HH:mm")
               .format(DateTime.parse(element['dateOfRecord']))
               .toString(),
-          temp: element['temperature'],
+          temp: element['temperature'] as int,
           index: cellId + 1,
         ));
       });
       print(response.statusCode);
-    } catch (e) {}
+    } catch (e) {
+      print(e);
+    }
     return cells;
   }
 
@@ -74,7 +76,7 @@ class ServerAsync with ChangeNotifier {
         headers: {"Content-Type": "application/json"},
         body: json.encode(
           {
-            "number": 13,
+            "number": 236,
             "model": "BMW",
             "numberOfCells": 6,
           },
@@ -99,9 +101,9 @@ class ServerAsync with ChangeNotifier {
         List<Map<String, dynamic>> oldData =
             json.decode(prefs.getString('waiting_data'))["cellDetails"];
         oldData.add({
-          "cellId": cell.id,
+          "cellId": cell.id - 1,
           "current": cell.current,
-          "temperatue": cell.temp,
+          "temperature": cell.temp,
           "voltage": cell.volt,
           "percentage": cell.sOC,
           "dateTime": DateTime.now().toIso8601String(),
@@ -116,7 +118,7 @@ class ServerAsync with ChangeNotifier {
                 {
                   "cellId": cell.id,
                   "current": cell.current,
-                  "temperatue": cell.temp,
+                  "temperature": cell.temp,
                   "voltage": cell.volt,
                   "percentage": cell.sOC,
                   "dateTime": DateTime.now().toIso8601String(),
@@ -165,7 +167,7 @@ class ServerAsync with ChangeNotifier {
             url,
             body: json.encode({
               "current": cell.current,
-              "temperatue": cell.temp,
+              "temperature": cell.temp,
               "voltage": cell.volt,
               "percentage": cell.sOC,
             }),
