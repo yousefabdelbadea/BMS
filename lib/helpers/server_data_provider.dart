@@ -116,7 +116,7 @@ class ServerAsync with ChangeNotifier {
             json.encode({
               "cellDetails": [
                 {
-                  "cellId": cell.id,
+                  "cellId": cell.id - 1,
                   "current": cell.current,
                   "temperature": cell.temp,
                   "voltage": cell.volt,
@@ -137,7 +137,7 @@ class ServerAsync with ChangeNotifier {
         List<Map<String, dynamic>> oldData =
             json.decode(prefs.getString('waiting_data'))["cellDetails"];
         oldData.add({
-          "cellId": cell.id,
+          "cellId": cell.id - 1,
           "current": cell.current,
           "temperature": cell.temp,
           "voltage": cell.volt,
@@ -161,7 +161,7 @@ class ServerAsync with ChangeNotifier {
           print(e);
         }
       } else {
-        url = Uri.parse("$stagingUrl/cars/$carId/${cell.id}/cellDetails");
+        url = Uri.parse("$stagingUrl/cars/$carId/${cell.id - 1}/cellDetails");
         try {
           final response = await http.post(
             url,
