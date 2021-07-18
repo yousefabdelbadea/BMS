@@ -7,3 +7,4 @@ this repository is for Battery mangemet system graduatin project that consists o
 	4- cell balancing module	: try to make all branches have similar amount of charge(charged/ discharged evenly)
 	5- communication module		: sends data to mobile app
 the mobile app : TBD
+
