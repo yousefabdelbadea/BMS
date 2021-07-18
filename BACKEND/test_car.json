@@ -1,0 +1,16 @@
+{
+  "number":52154,
+  "model": "BMW",
+  "cells": [
+    {"current":5,"number":1, "model":"lithium-24", "temperature":30, "voltage":10, "status":"ok","percentage":70,
+  },
+    {"current":5,"number":2, "model":"lithium-24", "temperature":30, "voltage":10, "status":"ok","percentage":70,
+      "cellDetails":[{"current" : 10,"temperature":30, "voltage":10, "percentage":70} , {"current" : 15, "temperature":30, "voltage":10,"percentage":70},{"temperature":30, "voltage":10, "current":10,"percentage":70}]
+    }
+  ],
+  "user": "6079b22d8d95b636a02112bd",
+  "status": "Healthy",
+  "isOnCharging":false,
+  "percentage":75
+
+}
