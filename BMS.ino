@@ -1,24 +1,3 @@
-/*
-    Video: https://www.youtube.com/watch?v=oCMOYS71NIU
-    Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleNotify.cpp
-    Ported to Arduino ESP32 by Evandro Copercini
-    updated by chegewara
-
-   Create a BLE server that, once we receive a connection, will send periodic notifications.
-   The service advertises itself as: 4fafc201-1fb5-459e-8fcc-c5c9c331914b
-   And has a characteristic of: beb5483e-36e1-4688-b7f5-ea07361b26a8
-
-   The design of creating the BLE server is:
-   1. Create a BLE Server
-   2. Create a BLE Service
-   3. Create a BLE Characteristic on the Service
-   4. Create a BLE Descriptor on the characteristic
-   5. Start the service.
-   6. Start advertising.
-
-   A connect hander associated with the server starts a background task that performs notification
-   every couple of seconds.
-*/
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
@@ -30,24 +9,18 @@ BLECharacteristic* pCharacteristic2_s1 = NULL;
 BLECharacteristic* pCharacteristic3_s1 = NULL;
 BLECharacteristic* pCharacteristic4_s1 = NULL;
 BLECharacteristic* pCharacteristic5_s1 = NULL;
-BLECharacteristic* pCharacteristic1_s2 = NULL;
-BLECharacteristic* pCharacteristic2_s2 = NULL;
-BLECharacteristic* pCharacteristic3_s2 = NULL;
-BLECharacteristic* pCharacteristic4_s2 = NULL;
-BLECharacteristic* pCharacteristic5_s2 = NULL;
+
 
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
-bool set_one = true;               // remove this variable when connecting to stm
-uint8_t cell_info[5];
-uint8_t permission_to_send = 1, safe_data = 1, received_resp = 0, i =0;     // initialize permission_to_send to 0 when dealing with stm
+uint8_t cell_info[5] ;
+uint8_t received_resp = 0, i =0, starting_index = 0, ending_index = 0;
 uint32_t ready_to_exit = 0;
-hw_timer_t* timer = NULL;      // remove this variable when connecting to stm
-// See the following for generating UUIDs:
-// https://www.uuidgenerator.net/
+String input_string;           // for incoming serial data
+String numerical_string;
+
 
 #define SERVICE1_UUID        "0000180f-0000-1000-8000-00805f9b34fb"       // current data service
-#define SERVICE2_UUID        "00001802-0000-1000-8000-00805f9b34fb"       // alarming service
 #define CHARACTERISTIC1_UUID "00002a00-0000-1000-8000-00805f9b34fb"       // device name
 #define CHARACTERISTIC2_UUID "00002a6e-0000-1000-8000-00805f9b34fb"       // temperature      
 #define CHARACTERISTIC3_UUID "00002ae0-0000-1000-8000-00805f9b34fb"       // current
@@ -57,9 +30,11 @@ hw_timer_t* timer = NULL;      // remove this variable when connecting to stm
 
 // defining some LEDs
 
-#define ALL_DONE  2
+#define VALID_FORMAT  2
+#define INVALID_FORMAT  5
 #define REMAINING_DATA    4
-#define CONNECTION_LOST 17
+#define ACKNOWLEDGED 17
+
 
 
 class MyServerCallbacks: public BLEServerCallbacks {
@@ -72,14 +47,9 @@ class MyServerCallbacks: public BLEServerCallbacks {
     }
 };
 
-void IRAM_ATTR onTimer(){                                  // remove this function when connecting to stm
-  set_one = !set_one;
-}
-
 void setup() {
 
-  /*timerBegin();
-  timerAlarmWrite();*/
+
   Serial.begin(9600,SERIAL_8N1);
 
   // Create the BLE Device
@@ -132,117 +102,87 @@ void setup() {
                       BLECharacteristic::PROPERTY_NOTIFY
                     );   
                                                                    
+                                                               
+// Create Client Characteristic Configuration BLE Descriptor for device name characterstic
+  pCharacteristic1_s1->addDescriptor(new BLE2902());
 
-
-
-  // Create the alarming Service
-  BLEService *pService2 = pServer->createService(SERVICE2_UUID);
-
-  // Create the device name Characteristic in the alarming Service
-  pCharacteristic1_s2 = pService2->createCharacteristic(
-                      CHARACTERISTIC1_UUID,
-                      BLECharacteristic::PROPERTY_READ   |
-                      BLECharacteristic::PROPERTY_WRITE  |
-                      BLECharacteristic::PROPERTY_NOTIFY
-                    );
-
-  // Create the temperature Characteristic in the alarming Service
-  pCharacteristic2_s2 = pService2->createCharacteristic(
-                      CHARACTERISTIC2_UUID,
-                      BLECharacteristic::PROPERTY_READ   |
-                      BLECharacteristic::PROPERTY_WRITE  |
-                      BLECharacteristic::PROPERTY_NOTIFY
-                    );
-
-  // Create the current Characteristic in the alarming Service
-  pCharacteristic3_s2 = pService2->createCharacteristic(
-                      CHARACTERISTIC3_UUID,
-                      BLECharacteristic::PROPERTY_READ   |
-                      BLECharacteristic::PROPERTY_WRITE  |
-                      BLECharacteristic::PROPERTY_NOTIFY
-                    );     
-
-  // Create the voltage Characteristic in the alarming Service
-  pCharacteristic4_s2 = pService2->createCharacteristic(
-                      CHARACTERISTIC4_UUID,
-                      BLECharacteristic::PROPERTY_READ   |
-                      BLECharacteristic::PROPERTY_WRITE  |
-                      BLECharacteristic::PROPERTY_NOTIFY 
-                    );    
-
-  // Create the SOC Characteristic in the alarming Service
-  pCharacteristic5_s2 = pService2->createCharacteristic(
-                      CHARACTERISTIC5_UUID,
-                      BLECharacteristic::PROPERTY_READ   |
-                      BLECharacteristic::PROPERTY_WRITE  |
-                      BLECharacteristic::PROPERTY_NOTIFY 
-                    );   
-                                                                    
 
  
 
   // Start the current data service
   pService1->start();
-  // Start the alarming service
-  pService2->start();
+
 
   // Start advertising
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE1_UUID);
-  pAdvertising->addServiceUUID(SERVICE2_UUID);
   pAdvertising->setScanResponse(false);
   pAdvertising->setMinPreferred(0x0);  // set value to 0x00 to not advertise this parameter
   BLEDevice::startAdvertising();
-  //Serial.println("Waiting a client connection to notify...");
 
 
-  pinMode(ALL_DONE, OUTPUT);
+
+  pinMode(VALID_FORMAT, OUTPUT);
+  pinMode(INVALID_FORMAT, OUTPUT);
   pinMode(REMAINING_DATA, OUTPUT);
-  pinMode(CONNECTION_LOST, OUTPUT);
-
-  /*digitalWrite(ALL_DONE, HIGH);
-  digitalWrite(REMAINING_DATA, HIGH);
-  digitalWrite(CONNECTION_LOST, HIGH);*/
-
-  // remove these statements on dealing with stm
-  timer = timerBegin(0, 80, true);  // timer 0, MWDT clock period = 12.5 ns * TIMGn_Tx_WDT_CLK_PRESCALE -> 12.5 ns * 80 -> 1000 ns = 1 us, countUp
-  timerAttachInterrupt(timer, &onTimer, true); // edge (not level) triggered 
-  timerAlarmWrite(timer, 30000000, true); // 30000000 * 1 us = 30 seconds, autoreload true
-  timerAlarmEnable(timer); // enable
+  pinMode(ACKNOWLEDGED, OUTPUT);
+                   
 }
 
 void loop() {
 
-  if (set_one)            // remove this if and following else on dealing with stm
+  if (Serial.available())                     
   {
-    for (i=0;i<5;i++)
-        cell_info[i] = 1;
-  }
-  else
-  {
-    for (i=0;i<5;i++)
-        cell_info[i] = 2;
-  }
+    input_string = Serial.readString();                                                       // read the incoming data as string
 
-    /*if (Serial.available() > 4)                     // remove /* when dealing with stm
-    {      
-      for (i=0;i<5;i++)
-        cell_info[i] = Serial.read() - 48;            // remove -48 when dealing with stm but keep it when dealing with monitor
-      permission_to_send = 1;
+    if (input_string[0] == '#' && input_string[input_string.length() - 1] == '$' )            // valid format
+    {
+      digitalWrite(VALID_FORMAT, HIGH);
+      digitalWrite(INVALID_FORMAT, LOW);
+      starting_index = input_string.indexOf('C');
+      
+      for (i=0;i<5;i++) 
+      {
+        if (i==0)
+          ending_index = input_string.indexOf('T');
+        else if (i == 1)
+          ending_index = input_string.indexOf('A');        
+        else if (i == 2)
+          ending_index = input_string.indexOf('V');   
+        else if (i == 3)
+          ending_index = input_string.indexOf('S');   
+        else if (i == 4)
+          ending_index = input_string.indexOf('$');    
+  
+  
+        numerical_string = input_string.substring(starting_index  + 1, ending_index);
+        cell_info[i] = numerical_string.toInt(); 
+        starting_index = ending_index;
 
-    }*/
+      }
+    }
+
+    else                                                          // invalid format  
+    {
+      digitalWrite(INVALID_FORMAT, HIGH);
+      digitalWrite(VALID_FORMAT, LOW);
+    }
+
+
+  }
       
     // notify changed value
     if (deviceConnected) {
+      
+        delay(4000);
 
-      if (permission_to_send && safe_data)
-      {
         pCharacteristic2_s1->setValue(cell_info+1,1);      // temperature
         pCharacteristic3_s1->setValue(cell_info+2,1);      // current
         pCharacteristic4_s1->setValue(cell_info+3,1);      // voltage
         pCharacteristic5_s1->setValue(cell_info+4,1);      //SOC
         pCharacteristic1_s1->setValue(cell_info,1);      // device_name
         pCharacteristic1_s1->notify();   
+
         
         received_resp = *(pCharacteristic1_s1->getData());
 
@@ -259,8 +199,7 @@ void loop() {
         
         if (received_resp == 0)      // acknowledgment received
         {
-          Serial.println("acknowledged");
-          digitalWrite(CONNECTION_LOST, HIGH);
+          digitalWrite(ACKNOWLEDGED, HIGH);
           digitalWrite(REMAINING_DATA, LOW);
         }
             
@@ -268,15 +207,10 @@ void loop() {
         {
           Serial.println(received_resp);
           digitalWrite(REMAINING_DATA, HIGH);
-          digitalWrite(CONNECTION_LOST, LOW);
+          digitalWrite(ACKNOWLEDGED, LOW);
         }
             
-
-
-        //permission_to_send = 0;                 // remove // when dealing with stm
-      }
           
-          // serivce 2 here if safe_data ==0 with permission_to_send  
       }
 
     // disconnecting
