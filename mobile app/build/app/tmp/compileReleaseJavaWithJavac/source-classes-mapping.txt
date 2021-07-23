@@ -1,0 +1,4 @@
+io/flutter/plugins/GeneratedPluginRegistrant.java
+ io.flutter.plugins.GeneratedPluginRegistrant
+com/bms_asu/bms/BuildConfig.java
+ com.bms_asu.bms.BuildConfig

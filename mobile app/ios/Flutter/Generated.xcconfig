@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
 FLUTTER_ROOT=/home/muhammad/snap/flutter/common/flutter
-FLUTTER_APPLICATION_PATH=/media/muhammad/Here_we_are/Muhammad/college/4th cse/Grad project/bms
+FLUTTER_APPLICATION_PATH=/media/muhammad/Here_we_are/Muhammad/college/4th cse/Grad project/bms/mobile app
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_TARGET=lib/main.dart
 FLUTTER_BUILD_DIR=build
