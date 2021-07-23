@@ -16,8 +16,7 @@ BMS-MobileApp is a part of our Solution [![N|Solid](https://github.com/yousefabd
 ## Flutter Packages Used
     -Provider
     -Flutter_Blue
-    -Flutter_Bluetooth_serial
+    -Sqflite
+    -and more
 
 
-## demos
-![demo](https://github.com/yousefabdelbadea/BMS/blob/MobileApp/demos/Screen_Recording_20210401-202950.gif)
