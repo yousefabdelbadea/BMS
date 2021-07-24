@@ -136,11 +136,11 @@
 		BLE_sendData();
 		/*
 		 * this function display the thermal data if there is danger.
-		 * it has high priority form cells data displaying
+		 * it is more imprtant than cells data displaying so it's displayed first
 		 */
 		Display_thermalData();
 		/*
-		 * this task is responsible for display cells data for the user in lcd screen
+		 * this function is responsible for display cells data for the user in lcd screen
 		 * it make user / driver follow the battery management system actions
 		 */
 		Display_voidDataAcqusition();
