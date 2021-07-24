@@ -2,13 +2,16 @@ const mongoose = require('mongoose');
 
 const cellDetailSchema = new mongoose.Schema({
     temperature:  {
-        type: Number
+        type: Number,
+        required:true
     },
     current:  {
-        type: Number
+        type: Number,
+        required:true
     },
     voltage:  {
-        type: Number
+        type: Number,
+        required:true
     },
     percentage: {
         type: Number

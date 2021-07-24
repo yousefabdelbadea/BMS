@@ -8,7 +8,11 @@ const mongoose = require('mongoose');
 
 
 router.get(`/`, async (req, res) =>{
-    const carList = await Car.find().populate('user', 'name').populate( {
+    const carList = await Car.find( function (err, car) {
+        if (err){
+            res.status(400).json({success: false, message: 'cars not found', error: err})
+        }
+    }).populate('user', 'name').populate( {
         path: 'cells', populate: {path : 'cellDetails'}}).sort({'dateOfRecord': -1});
 
     if(!carList) {
@@ -18,7 +22,11 @@ router.get(`/`, async (req, res) =>{
 })
 
 router.get(`/:id`, async (req, res) =>{
-    const car = await Car.findById(req.params.id).populate('user', 'name')
+    const car = await Car.findById(req.params.id , function (err, car) {
+        if (err){
+            res.status(400).json({success: false, message: ' no car with the given id', error: err})
+        }
+    }).populate('user', 'name')
         .populate({
             path: 'cells', populate: {
                 path : 'cellDetails'}
@@ -32,19 +40,27 @@ router.get(`/:id`, async (req, res) =>{
 
 //get cell by number
 router.get(`/:carId/:cellNumber`, async (req, res) =>{
-    const car = await Car.findById(req.params.carId).populate('user', 'name')
+    const car = await Car.findById(req.params.carId , function (err, car) {
+        if (err){
+            res.status(400).json({success: false, message: ' no car with the given id', error: err})
+        }
+    }).populate('user', 'name')
         .populate({
             path: 'cells', populate: {
                 path : 'cellDetails'}
         }).sort({'cellDetails': -1})
 
     if(!car) {
-        res.status(500).json({success: false})
+        res.status(400).json({success: false, message:"no car with the given id"})
+    }
+    if (car.cells.length-1 < +req.params.cellNumber){
+        res.status(402).json({success: false, message: ' no cell with the given number'})
     }
     const cell = car.cells[+req.params.cellNumber]
     if (!cell){
         res.send('No cell was found for this number ' + req.params.cellNumber)
     }
+
     res.send(cell);
 })
 
@@ -65,16 +81,19 @@ router.post('/', async (req,res)=>{
         }
     })
 
-
-
     if (!req.body.cells) {
         let cellsArray = [];
         if (req.body.numberOfCells > 20) {
-            return res.status(404).send('only maximum of 20 cell for each car is allowed')
+            return res.status(404).send('only a maximum of 20 cell for each car is allowed')
         }
         for (let i = 0; i < req.body.numberOfCells; i++) {
             let cell = new Cell({})
-            await cell.save();
+            await cell.save().catch(err => {
+                if (err)
+                    res.status(500).json({
+                        success:false, message:err.message
+                    })
+            });
             cellsArray.push(cell._id);
         }
         let car = new Car({
@@ -87,11 +106,15 @@ router.post('/', async (req,res)=>{
             user: req.body.user,
             cells : cellsArray
         })
-        car = await car.save();
+        car = await car.save().catch(err => {
+            if (err)
+                res.status(500).json({
+                    success:false, message:err.message
+                })
+        });
 
         if (!car)
             return res.status(404).send('the car cannot be created!')
-
         res.send(car);
     }
     const cells = Promise.all(req.body.cells.map(async (cell) =>{
@@ -103,7 +126,12 @@ router.post('/', async (req,res)=>{
                 percentage:cellDetails.percentage,
                 dateOfRecord:cellDetails.dateOfRecord
             })
-            newCellDetail = await newCellDetail.save();
+            newCellDetail = await newCellDetail.save().catch(err => {
+                res.status(405).json({
+                    error: err.message,
+                    success:false,
+                })
+            });;
             return newCellDetail._id
         }))
 
@@ -159,7 +187,12 @@ router.post('/:carId/cells', async (req,res)=>{
                     percentage: cellDetails.percentage,
                     dateOfRecord: cellDetails.dateOfRecord
                 })
-                newCellDetail = await newCellDetail.save();
+                newCellDetail = await newCellDetail.save().catch(err => {
+                    res.status(405).json({
+                        error: err.message,
+                        success:false,
+                    })
+                });
                 return newCellDetail._id
             }))
 
@@ -214,7 +247,11 @@ router.post('/:carId/:cellNumber', async (req,res)=>{
     console.log('done at /:carId/:cellNumber ')
     const car = await Car.findById(req.params.carId, (err,)=>{
         if (err) {
-            res.send('No car was found, '+err).status(404)
+            res.status(400).json({
+                message: 'The car cannot be found',
+                success: false,
+                error: err.message
+            })
         }
     });
 
@@ -246,7 +283,12 @@ router.post('/:carId/:cellNumber', async (req,res)=>{
             percentage:cellDetails.percentage,
             dateOfRecord:cellDetails.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });;
         return newCellDetail._id
     }))
 
@@ -271,18 +313,32 @@ router.post('/:carId/:cellNumber', async (req,res)=>{
    await car.save();
     if(!car)
         return res.status(400).send('the cell cannot be updated!')
-    res.send(car);
+    res.send(car.cells);
 });
 
 //post cellDetails given cell id with body
 
 router.post('/cell/cellDetails/:carId', async (req,res)=>{
-    let car = await Car.findById(req.params.carId);
-    if (!car){
-        res.send('No car found').status(404)
-    }
+    let car = await Car.findById(req.params.carId,function (err,car) {
+        if (!car) {
+            res.status(404).json({
+                success: false,
+                message: 'Cannot find a car with the given id',
+                error: err.message
+            })
+        }
+    });
+
+
     if (!Array.isArray(req.body.cellDetails) && !req.body.hasOwnProperty('cellDetails')){
-        console.log('done here')
+        if (car.cells.length-1 < +req.body.cellId) {
+            res.status(402).json({
+                message: 'no car with given carId',
+                success:false,
+                noOfCells: car.cells.length,
+                maxId: car.cells.length - 1
+            })
+        }
         let newCellDetail = new CellDetail({
             temperature: req.body.temperature,
             current: req.body.current,
@@ -290,8 +346,20 @@ router.post('/cell/cellDetails/:carId', async (req,res)=>{
             percentage:req.body.percentage,
             dateOfRecord:req.body.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
-        let cell = await Cell.findById(car.cells[+req.body.cellId]._id);
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
+        let cell = await Cell.findById(car.cells[+req.body.cellId]._id).catch(err => {
+            res.status(400).json({
+                message: 'no cell with given cellId',
+                error: err.message,
+                success:false,
+                noOfCells: car.cells.length
+            })
+        });
         let newCellDetailsId = mongoose.Types.ObjectId(newCellDetail._id);
         cell.cellDetails.unshift(newCellDetailsId)
         //cell.cellDetails.concat(newCellDetailsIds);  newCellDetailsIds.reverse()
@@ -302,7 +370,14 @@ router.post('/cell/cellDetails/:carId', async (req,res)=>{
         res.send(cell);
     }
     if (!Array.isArray(req.body.cellDetails) && req.body.hasOwnProperty('cellDetails')){
-        console.log('done here')
+        if (car.cells.length-1 < +req.body.cellDetails.cellId) {
+            res.status(400).json({
+                message: 'no cell with the given cellId',
+                success:false,
+                noOfCells: car.cells.length,
+                maxId: car.cells.length - 1
+            })
+        }
         let newCellDetail = new CellDetail({
             temperature: req.body.cellDetails.temperature,
             current: req.body.cellDetails.current,
@@ -310,7 +385,12 @@ router.post('/cell/cellDetails/:carId', async (req,res)=>{
             percentage:req.body.cellDetails.percentage,
             dateOfRecord:req.body.cellDetails.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.body.cellDetails.cellId]._id);
         let newCellDetailsId = mongoose.Types.ObjectId(newCellDetail._id);
         cell.cellDetails.unshift(newCellDetailsId)
@@ -322,22 +402,35 @@ router.post('/cell/cellDetails/:carId', async (req,res)=>{
         res.send(cell);
     }
     if (Array.isArray(req.body.cellDetails)) {
-        const newCellDetails = Promise.all(req.body.cellDetails.map(async (cellDetails) => {
+        const newCellDetails = Promise.all(req.body.cellDetails.map(async (cellDetail) => {
+            if (car.cells.length-1 < +cellDetail.cellId) {
+                res.status(400).json({
+                    message: 'no cell with given id',
+                    success:false,
+                    noOfCells: car.cells.length,
+                    maxId: car.cells.length - 1
+                })
+            }
             let newCellDetail = new CellDetail({
-                temperature: cellDetails.temperature,
-                current: cellDetails.current,
-                voltage: cellDetails.voltage,
-                percentage: cellDetails.percentage,
-                dateOfRecord: cellDetails.dateOfRecord
+                temperature: cellDetail.temperature,
+                current: cellDetail.current,
+                voltage: cellDetail.voltage,
+                percentage: cellDetail.percentage,
+                dateOfRecord: cellDetail.dateOfRecord
             })
-            newCellDetail = await newCellDetail.save();
+            newCellDetail = await newCellDetail.save().catch(err => {
+                res.status(405).json({
+                    error: err.message,
+                    success:false,
+                })
+            });
             const newCellDetailsId = newCellDetail._id
-            let cell = await Cell.findById(car.cells[+cellDetails.cellId]._id);
+            let cell = await Cell.findById(car.cells[+cellDetail.cellId]._id);
             if(!cell){
                 res.send('no cell with the given id')
             }
             cell.cellDetails.unshift(newCellDetailsId)
-            cell.markModified(cellDetails);
+            cell.markModified('cellDetails');
             cell.save();
         }))
         // let cell = await Cell.findById(car.cells[+req.params.cellNumber]._id);
@@ -346,7 +439,11 @@ router.post('/cell/cellDetails/:carId', async (req,res)=>{
         await car.save();
         if (!car)
             return res.status(400).send('the cell cannot be update!')
-        res.send(car);
+        res.send(await Car.findById(car._id).populate('user', 'name')
+            .populate({
+                path: 'cells', populate: {
+                    path : 'cellDetails'}
+            }).sort({'cellDetails': -1}));
     }
 });
 
@@ -360,7 +457,7 @@ router.post('/:carId/:cellNumber/cellDetails', async (req,res)=>{
     }
     console.log(car.cells.length)
     if (car.cells.length-1 < +req.params.cellNumber){
-        res.status(400).send('no cell with the given number')
+        res.status(402).send('no cell with the given number')
     }
     if (!Array.isArray(req.body.cellDetails) && !req.body.hasOwnProperty('cellDetails')){
         console.log('done here')
@@ -371,7 +468,12 @@ router.post('/:carId/:cellNumber/cellDetails', async (req,res)=>{
             percentage:req.body.percentage,
             dateOfRecord:req.body.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.params.cellNumber]._id);
         if(!cell){
             res.send('No cell found').status(404)
@@ -394,7 +496,12 @@ router.post('/:carId/:cellNumber/cellDetails', async (req,res)=>{
             percentage:req.body.cellDetails.percentage,
             dateOfRecord:req.body.cellDetails.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.params.cellNumber]._id);
         if(!cell){
             res.send('No cell found').status(404)
@@ -417,7 +524,12 @@ router.post('/:carId/:cellNumber/cellDetails', async (req,res)=>{
                 percentage: cellDetails.percentage,
                 dateOfRecord: cellDetails.dateOfRecord
             })
-            newCellDetail = await newCellDetail.save();
+            newCellDetail = await newCellDetail.save().catch(err => {
+                res.status(405).json({
+                    error: err.message,
+                    success:false,
+                })
+            });
             return newCellDetail._id
         }))
         const newCellDetailsIds = await newCellDetails
@@ -448,7 +560,12 @@ router.patch('/:carId/:cellNumber', async (req,res)=>{
             percentage:req.body.percentage,
             dateOfRecord:req.body.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.params.cellNumber]);
         let newCellDetailsId = mongoose.Types.ObjectId(newCellDetail._id);
         cell.cellDetails.unshift(newCellDetailsId)
@@ -468,7 +585,12 @@ router.patch('/:carId/:cellNumber', async (req,res)=>{
             percentage:req.body.cellDetails.percentage,
             dateOfRecord:req.body.cellDetails.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.params.cellNumber]);
         let newCellDetailsId = mongoose.Types.ObjectId(newCellDetail._id);
         cell.cellDetails.unshift(newCellDetailsId)
@@ -488,7 +610,12 @@ router.patch('/:carId/:cellNumber', async (req,res)=>{
                 percentage: cellDetails.percentage,
                 dateOfRecord: cellDetails.dateOfRecord
             })
-            newCellDetail = await newCellDetail.save();
+            newCellDetail = await newCellDetail.save().catch(err => {
+                res.status(405).json({
+                    error: err.message,
+                    success:false,
+                })
+            });
             return newCellDetail._id
         }))
         const newCellDetailsIds = await newCellDetails
@@ -513,7 +640,12 @@ router.patch('/:id',async (req, res)=> {
             percentage:cellDetail.percentage,
             dateOfRecord: cellDetail.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         return newCellDetail._id
     }))
     const  newCellDetailsIds = await newCellDetails
