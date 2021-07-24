@@ -53,13 +53,14 @@ router.get(`/:carId/:cellNumber`, async (req, res) =>{
     if(!car) {
         res.status(400).json({success: false, message:"no car with the given id"})
     }
-    if (car.cells.length-1 < req.params.cellNumber){
-        res.status(400).json({success: false, message: ' no cell with the given number'})
+    if (car.cells.length-1 < +req.params.cellNumber){
+        res.status(402).json({success: false, message: ' no cell with the given number'})
     }
     const cell = car.cells[+req.params.cellNumber]
     if (!cell){
         res.send('No cell was found for this number ' + req.params.cellNumber)
     }
+
     res.send(cell);
 })
 
@@ -114,7 +115,6 @@ router.post('/', async (req,res)=>{
 
         if (!car)
             return res.status(404).send('the car cannot be created!')
-
         res.send(car);
     }
     const cells = Promise.all(req.body.cells.map(async (cell) =>{
@@ -126,7 +126,12 @@ router.post('/', async (req,res)=>{
                 percentage:cellDetails.percentage,
                 dateOfRecord:cellDetails.dateOfRecord
             })
-            newCellDetail = await newCellDetail.save();
+            newCellDetail = await newCellDetail.save().catch(err => {
+                res.status(405).json({
+                    error: err.message,
+                    success:false,
+                })
+            });;
             return newCellDetail._id
         }))
 
@@ -182,7 +187,12 @@ router.post('/:carId/cells', async (req,res)=>{
                     percentage: cellDetails.percentage,
                     dateOfRecord: cellDetails.dateOfRecord
                 })
-                newCellDetail = await newCellDetail.save();
+                newCellDetail = await newCellDetail.save().catch(err => {
+                    res.status(405).json({
+                        error: err.message,
+                        success:false,
+                    })
+                });
                 return newCellDetail._id
             }))
 
@@ -273,7 +283,12 @@ router.post('/:carId/:cellNumber', async (req,res)=>{
             percentage:cellDetails.percentage,
             dateOfRecord:cellDetails.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });;
         return newCellDetail._id
     }))
 
@@ -317,7 +332,7 @@ router.post('/cell/cellDetails/:carId', async (req,res)=>{
 
     if (!Array.isArray(req.body.cellDetails) && !req.body.hasOwnProperty('cellDetails')){
         if (car.cells.length-1 < +req.body.cellId) {
-            res.status(400).json({
+            res.status(402).json({
                 message: 'no car with given carId',
                 success:false,
                 noOfCells: car.cells.length,
@@ -331,7 +346,12 @@ router.post('/cell/cellDetails/:carId', async (req,res)=>{
             percentage:req.body.percentage,
             dateOfRecord:req.body.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.body.cellId]._id).catch(err => {
             res.status(400).json({
                 message: 'no cell with given cellId',
@@ -365,7 +385,12 @@ router.post('/cell/cellDetails/:carId', async (req,res)=>{
             percentage:req.body.cellDetails.percentage,
             dateOfRecord:req.body.cellDetails.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.body.cellDetails.cellId]._id);
         let newCellDetailsId = mongoose.Types.ObjectId(newCellDetail._id);
         cell.cellDetails.unshift(newCellDetailsId)
@@ -393,7 +418,12 @@ router.post('/cell/cellDetails/:carId', async (req,res)=>{
                 percentage: cellDetail.percentage,
                 dateOfRecord: cellDetail.dateOfRecord
             })
-            newCellDetail = await newCellDetail.save();
+            newCellDetail = await newCellDetail.save().catch(err => {
+                res.status(405).json({
+                    error: err.message,
+                    success:false,
+                })
+            });
             const newCellDetailsId = newCellDetail._id
             let cell = await Cell.findById(car.cells[+cellDetail.cellId]._id);
             if(!cell){
@@ -427,7 +457,7 @@ router.post('/:carId/:cellNumber/cellDetails', async (req,res)=>{
     }
     console.log(car.cells.length)
     if (car.cells.length-1 < +req.params.cellNumber){
-        res.status(400).send('no cell with the given number')
+        res.status(402).send('no cell with the given number')
     }
     if (!Array.isArray(req.body.cellDetails) && !req.body.hasOwnProperty('cellDetails')){
         console.log('done here')
@@ -438,7 +468,12 @@ router.post('/:carId/:cellNumber/cellDetails', async (req,res)=>{
             percentage:req.body.percentage,
             dateOfRecord:req.body.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.params.cellNumber]._id);
         if(!cell){
             res.send('No cell found').status(404)
@@ -461,7 +496,12 @@ router.post('/:carId/:cellNumber/cellDetails', async (req,res)=>{
             percentage:req.body.cellDetails.percentage,
             dateOfRecord:req.body.cellDetails.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.params.cellNumber]._id);
         if(!cell){
             res.send('No cell found').status(404)
@@ -484,7 +524,12 @@ router.post('/:carId/:cellNumber/cellDetails', async (req,res)=>{
                 percentage: cellDetails.percentage,
                 dateOfRecord: cellDetails.dateOfRecord
             })
-            newCellDetail = await newCellDetail.save();
+            newCellDetail = await newCellDetail.save().catch(err => {
+                res.status(405).json({
+                    error: err.message,
+                    success:false,
+                })
+            });
             return newCellDetail._id
         }))
         const newCellDetailsIds = await newCellDetails
@@ -515,7 +560,12 @@ router.patch('/:carId/:cellNumber', async (req,res)=>{
             percentage:req.body.percentage,
             dateOfRecord:req.body.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.params.cellNumber]);
         let newCellDetailsId = mongoose.Types.ObjectId(newCellDetail._id);
         cell.cellDetails.unshift(newCellDetailsId)
@@ -535,7 +585,12 @@ router.patch('/:carId/:cellNumber', async (req,res)=>{
             percentage:req.body.cellDetails.percentage,
             dateOfRecord:req.body.cellDetails.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         let cell = await Cell.findById(car.cells[+req.params.cellNumber]);
         let newCellDetailsId = mongoose.Types.ObjectId(newCellDetail._id);
         cell.cellDetails.unshift(newCellDetailsId)
@@ -555,7 +610,12 @@ router.patch('/:carId/:cellNumber', async (req,res)=>{
                 percentage: cellDetails.percentage,
                 dateOfRecord: cellDetails.dateOfRecord
             })
-            newCellDetail = await newCellDetail.save();
+            newCellDetail = await newCellDetail.save().catch(err => {
+                res.status(405).json({
+                    error: err.message,
+                    success:false,
+                })
+            });
             return newCellDetail._id
         }))
         const newCellDetailsIds = await newCellDetails
@@ -580,7 +640,12 @@ router.patch('/:id',async (req, res)=> {
             percentage:cellDetail.percentage,
             dateOfRecord: cellDetail.dateOfRecord
         })
-        newCellDetail = await newCellDetail.save();
+        newCellDetail = await newCellDetail.save().catch(err => {
+            res.status(405).json({
+                error: err.message,
+                success:false,
+            })
+        });
         return newCellDetail._id
     }))
     const  newCellDetailsIds = await newCellDetails
