@@ -100,13 +100,12 @@
 
 		/*
 		 * initialize with data acquisition module
-		 * this module has high priority
 		 * most modules depends on it
 		 * in this module we obtain current , voltage , temperature for each cell
 		 */
 		Data_voidAcqusition();
 		/*
-		 *this task is responsible  for calculate the state of charge for each cell
+		 *this function is responsible  for calculate the state of charge for each cell
 		 * by using data which we obtain it from data acquisition
 		   we can calculate the state if charge for each cells and overall state of charge
 		 * adding to voltage , current and temperature for each cell , we add the state of charge
@@ -136,7 +135,7 @@
 		 */
 		BLE_sendData();
 		/*
-		 * this task display the thermal data if there is danger.
+		 * this function display the thermal data if there is danger.
 		 * it has high priority form cells data displaying
 		 */
 		Display_thermalData();
